@@ -471,6 +471,25 @@
         --gs-text: #b0aeac;
       }
 
+      .${BADGE_CLASS}--chart {
+        position: static;
+        top: auto;
+        left: auto;
+        z-index: auto;
+        display: inline-flex;
+        margin-top: 6px;
+        max-width: 100%;
+        white-space: normal;
+        box-shadow: none;
+        font-size: 10px;
+        line-height: 16px;
+        padding: 0 6px;
+      }
+
+      [class*="StoreSalePriceWidgetContainer"] > .${BADGE_CLASS}--chart {
+        align-self: flex-start;
+      }
+
       .${BADGE_CLASS}--page,
       a.${BADGE_CLASS}.${BADGE_CLASS}--page,
       span.${BADGE_CLASS}.${BADGE_CLASS}--page {
@@ -826,6 +845,7 @@
       '.StoreSaleWidgetTitle',
       '[class*="item_title"]',
       '[class*="ItemTitle"]',
+      'a[href*="/app/"] img[src*="/apps/"] + div',
     ];
   
     const INVALID_SLUG_RE =
@@ -841,6 +861,7 @@
         return true;
       }
       if (/^(released|выход|дата выхода|release date)/i.test(value)) return true;
+      if (/^free to play$/i.test(value)) return true;
   
       const digits = (value.match(/\d/g) || []).length;
       return digits > 0 && digits / value.length > 0.45 && /%|руб|₽|\$|€|£/.test(value);
@@ -862,12 +883,16 @@
   
     function getCardTitle(card, link) {
       const sources = [];
-  
+
+      const skipTitle = (value) => {
+        const text = String(value || '').replace(/\s+/g, ' ').trim();
+        return /^(in library|в библиотеке|owned|ignored)$/i.test(text);
+      };
+
       const add = (value) => {
         const text = String(value || '').replace(/\s+/g, ' ').trim();
-        if (text && !looksLikePriceText(text) && !sources.includes(text)) {
-          sources.push(text);
-        }
+        if (!text || skipTitle(text) || looksLikePriceText(text) || sources.includes(text)) return;
+        sources.push(text);
       };
   
       for (const selector of TITLE_SELECTORS) {
@@ -1311,10 +1336,11 @@
       badge.addEventListener('focus', activate);
     }
   
-    function createLoaderBadge(isPage = false) {
+    function createLoaderBadge(isPage = false, isChart = false) {
       const badge = document.createElement('span');
       const pageClasses = isPage ? ` btnv6_blue_hoverfade btn_medium ${BADGE_CLASS}--page` : '';
-      badge.className = `${BADGE_CLASS} ${BADGE_CLASS}--loading${pageClasses}`;
+      const chartClass = isChart ? ` ${BADGE_CLASS}--chart` : '';
+      badge.className = `${BADGE_CLASS} ${BADGE_CLASS}--loading${pageClasses}${chartClass}`;
       if (isPage) {
         badge.innerHTML = `<span><span class="${BADGE_CLASS}__dot"></span><span class="${BADGE_CLASS}__label">${escapeHtml(t('loading'))}</span></span>`;
       } else {
@@ -1324,7 +1350,7 @@
     }
 
     function renderBadge(entry, options = {}) {
-      const { isPage = false } = options;
+      const { isPage = false, isChart = false } = options;
       const game = entry?.data || null;
       const type = getStatusType(game);
       const label = getStatusLabel(game, type);
@@ -1332,7 +1358,8 @@
 
       const badge = document.createElement('a');
       const pageClasses = isPage ? ` btnv6_blue_hoverfade btn_medium ${BADGE_CLASS}--page` : '';
-      badge.className = `${BADGE_CLASS} ${BADGE_CLASS}--${type}${pageClasses}`;
+      const chartClass = isChart ? ` ${BADGE_CLASS}--chart` : '';
+      badge.className = `${BADGE_CLASS} ${BADGE_CLASS}--${type}${pageClasses}${chartClass}`;
       badge.href = href;
       badge.target = '_blank';
       badge.rel = 'noopener noreferrer';
@@ -1390,9 +1417,22 @@
       return nodes;
     }
 
+    function getChartRowLink(row) {
+      const titleLink = row.querySelector('td a[href*="/app/"] img[src*="/apps/"]')?.closest('a');
+      return titleLink || row.querySelector('a[href*="/app/"]');
+    }
+
     function getCardAppId(card) {
       if (!card) return null;
-      return card.getAttribute('data-ds-appid') || card.dataset.dsAppid || null;
+      const fromAttr = card.getAttribute('data-ds-appid') || card.dataset.dsAppid;
+      if (fromAttr) return fromAttr;
+
+      if (isChartTableRow(card)) {
+        const link = getChartRowLink(card);
+        return link ? extractAppIdFromHref(link.href) : null;
+      }
+
+      return null;
     }
 
     function resolveCardAppId(card, fallbackAppId) {
@@ -1441,6 +1481,34 @@
       return getCardLink(card);
     }
   
+    function isChartTableRow(element) {
+      return Boolean(element?.matches?.('tr') && element.querySelector('[class*="StoreSalePriceWidgetContainer"]'));
+    }
+
+    function findChartTableRow(link) {
+      const row = link.closest('tr');
+      if (!row) return null;
+
+      const priceAnchor = row.querySelector('[class*="StoreSalePriceWidgetContainer"]');
+      if (!priceAnchor) return null;
+
+      const rowAppIds = new Set(
+        [...row.querySelectorAll('a[href*="/app/"]')]
+          .map((anchor) => extractAppIdFromHref(anchor.href))
+          .filter(Boolean)
+      );
+      if (rowAppIds.size !== 1) return null;
+
+      const linkAppId = extractAppIdFromHref(link.href);
+      if (linkAppId && !rowAppIds.has(linkAppId)) return null;
+
+      return row;
+    }
+
+    function getChartPriceAnchor(row) {
+      return row.querySelector('[class*="StoreSalePriceWidgetContainer"]');
+    }
+
     function findHomeContentGamelink(link) {
       const homeRoot = link.closest('.home_content.single, .home_content_single_ctn');
       if (!homeRoot) return null;
@@ -1457,6 +1525,11 @@
 
     function getBadgeAnchor(card) {
       if (!card) return card;
+
+      if (isChartTableRow(card)) {
+        const priceAnchor = getChartPriceAnchor(card);
+        if (priceAnchor) return priceAnchor;
+      }
 
       const imageAnchor =
         card.querySelector('.microtrailer_wrapper') ||
@@ -1492,6 +1565,9 @@
       if (current.contains(candidate)) return false;
       if (candidate.contains(current)) return true;
 
+      if (isChartTableRow(candidate) && !isChartTableRow(current)) return true;
+      if (isChartTableRow(current) && !isChartTableRow(candidate)) return false;
+
       const candidateAnchor = getBadgeAnchor(candidate);
       const currentAnchor = getBadgeAnchor(current);
       const candidateHasImage = candidateAnchor !== candidate;
@@ -1500,6 +1576,9 @@
     }
 
     function findCardContainer(link) {
+      const chartRow = findChartTableRow(link);
+      if (chartRow) return chartRow;
+
       const homeGamelink = findHomeContentGamelink(link);
       if (homeGamelink) return homeGamelink;
 
@@ -1537,6 +1616,11 @@
       if (cardAppId) {
         const matchedLink = card.querySelector(`a[href*="/app/${cardAppId}/"]`);
         if (matchedLink) return matchedLink;
+      }
+
+      if (isChartTableRow(card)) {
+        const titleLink = getChartRowLink(card);
+        if (titleLink) return titleLink;
       }
 
       return card.querySelector('a[href*="/app/"]');
@@ -1598,6 +1682,7 @@
 
           const anchor = entry.target;
           const card =
+            anchor.closest('tr') ||
             anchor.closest('.home_content_items[data-ds-appid], .gamelink[data-ds-appid], [data-ds-appid]') ||
             anchor;
           const appId = resolveCardAppId(card, anchor.dataset.gsAppId);
@@ -1621,18 +1706,19 @@
 
     async function hydrateCard(card, appId, link, title) {
       const anchor = getBadgeAnchor(card);
+      const isChart = isChartTableRow(card);
       const resolvedAppId = resolveCardAppId(card, appId);
       const resolvedLink = getCardLink(card) || link;
       const resolvedTitle = title || getCardTitle(card, resolvedLink);
       const loader = anchor.querySelector(`.${BADGE_CLASS}--loading`);
       try {
         const entry = await loadGame(resolvedAppId, resolvedLink, resolvedTitle);
-        const badge = renderBadge(entry, { isPage: false });
+        const badge = renderBadge(entry, { isChart });
         requestAnimationFrame(() => {
           loader?.replaceWith(badge);
         });
       } catch {
-        const badge = renderBadge({ data: null, missing: true, triedUrls: [] }, { isPage: false });
+        const badge = renderBadge({ data: null, missing: true, triedUrls: [] }, { isChart });
         badge.querySelector(`.${BADGE_CLASS}__label`).textContent = t('loadError');
         requestAnimationFrame(() => {
           loader?.replaceWith(badge);
@@ -1651,20 +1737,23 @@
             if (getCardAppId(card) && String(appId) !== resolvedAppId) return;
 
             const anchor = getBadgeAnchor(card);
+            const isChart = isChartTableRow(card);
             if (anchor.dataset.gsObserved === '1') {
               if (anchor.dataset.gsAppId === resolvedAppId) return;
               resetBadgeAnchor(anchor);
             }
 
             cleanupMisplacedHomeBadge(card);
-            ensureRelativePosition(anchor);
+            if (!isChart) {
+              ensureRelativePosition(anchor);
+            }
             anchor.dataset.gsObserved = '1';
             anchor.dataset.gsAppId = resolvedAppId;
             anchor.dataset.gsTitle = title;
             card.dataset.gsObserved = '1';
 
             if (!anchor.querySelector(`.${BADGE_CLASS}`)) {
-              anchor.appendChild(createLoaderBadge(false));
+              anchor.appendChild(createLoaderBadge(false, isChart));
             }
 
             visibilityObserver.observe(anchor);
