@@ -22,6 +22,8 @@
 // @description:ko     Steam 카드 및 게임 페이지에 gamestatus.info 크랙 상태를 표시
 // @description:pl     Pokazuje status cracka z gamestatus.info na kartach i stronach Steam
 // @author             NemoKing1210
+// @tag                steam
+// @tag                games
 // @homepageURL        https://github.com/NemoKing1210/steam-gamestatus
 // @supportURL         https://github.com/NemoKing1210/steam-gamestatus/issues
 // @updateURL          https://raw.githubusercontent.com/NemoKing1210/steam-gamestatus/main/steam-gamestatus.user.js
