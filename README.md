@@ -6,7 +6,7 @@
 
 A userscript for the Steam store and Steam Community that shows crack and DRM protection status for games using data from [GameStatus.info](https://gamestatus.info).
 
-While browsing Steam, you see compact status badges on game cards and a larger badge on individual game pages — without leaving the store.
+While browsing Steam, you see compact status badges on game cards and in the game page header — without leaving the store.
 
 Compatible with [Tampermonkey](https://www.tampermonkey.net/), [Violentmonkey](https://violentmonkey.github.io/), [Greasemonkey](https://www.greasespot.net/), ScriptCat, and other managers that support the `// ==UserScript==` metadata block.
 
@@ -55,7 +55,7 @@ Managers compare the installed `@version` with the remote metadata to decide whe
 ## Features
 
 - **Status badges on game cards** — store home, search results, wishlists, sale pages, and other listings with `/app/{id}` links
-- **Status badge on game pages** — shown near the game title with extra metadata (protection, release group)
+- **Status badge on game pages** — compact status chip in `.apphub_OtherSiteInfo` next to Community Hub / Store Page links
 - **Rich tooltips** — hover a badge to see protection, crack date, release date, scores, hardware requirements, and more
 - **Color-coded statuses** — quick visual scan across a long list of games
 - **Lazy loading** — badges load only when cards scroll into view
@@ -113,7 +113,7 @@ Steam page loads
        ▼
 Scan DOM for links matching /app/{appId}/
        │
-       ├── Game page? ──► Insert loader badge near title
+       ├── Game page? ──► Insert loader badge in `.apphub_OtherSiteInfo`
        │
        └── Listing page? ──► Find card containers, insert loader badges
                 │

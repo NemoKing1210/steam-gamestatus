@@ -455,26 +455,90 @@
         --gs-text: #b0aeac;
       }
 
-      .${BADGE_CLASS}--page {
+      .${BADGE_CLASS}--page,
+      a.${BADGE_CLASS}.${BADGE_CLASS}--page,
+      span.${BADGE_CLASS}.${BADGE_CLASS}--page {
         position: static;
-        display: inline-flex;
-        margin: 0 0 12px;
-        padding: 4px 10px;
-        font-size: 13px;
-        line-height: 1.4;
-        border-radius: 3px;
-        max-width: 100%;
-        white-space: normal;
+        top: auto;
+        left: auto;
+        z-index: auto;
+        display: inline-block;
+        vertical-align: top;
+        margin: 0;
+        padding: 1px;
+        max-width: none;
+        box-shadow: none;
+        border: none;
+        border-radius: 2px;
+        background: rgba(103, 193, 245, 0.2);
+        color: #67c1f5 !important;
+        text-decoration: none !important;
+        font: inherit;
+        overflow: visible;
+        white-space: nowrap;
+        gap: 0;
+        cursor: pointer;
       }
 
-      .${BADGE_CLASS}--page .${BADGE_CLASS}__meta {
-        display: block;
-        margin-top: 3px;
-        font-size: 11px;
-        font-weight: normal;
-        color: var(--gs-muted);
-        white-space: normal;
-        line-height: 1.35;
+      a.${BADGE_CLASS}.${BADGE_CLASS}--page:hover,
+      span.${BADGE_CLASS}.${BADGE_CLASS}--page:hover {
+        color: #fff !important;
+        background: linear-gradient(-60deg, #417a9b 5%, #67c1f5 95%);
+      }
+
+      .${BADGE_CLASS}--page > span,
+      a.${BADGE_CLASS}.${BADGE_CLASS}--page > span,
+      span.${BADGE_CLASS}.${BADGE_CLASS}--page > span {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 2px;
+        background: transparent;
+        padding: 0 15px;
+        font: normal 15px/30px "Motiva Sans", Sans-serif;
+        color: inherit;
+      }
+
+      .${BADGE_CLASS}--page.${BADGE_CLASS}--cracked,
+      .${BADGE_CLASS}--page.${BADGE_CLASS}--bypass,
+      .${BADGE_CLASS}--page.${BADGE_CLASS}--not-cracked,
+      .${BADGE_CLASS}--page.${BADGE_CLASS}--release-today,
+      .${BADGE_CLASS}--page.${BADGE_CLASS}--unknown,
+      .${BADGE_CLASS}--page.${BADGE_CLASS}--missing {
+        --gs-bg: rgba(103, 193, 245, 0.2);
+        --gs-text: #67c1f5;
+      }
+
+      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--cracked:hover,
+      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--bypass:hover,
+      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--not-cracked:hover,
+      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--release-today:hover,
+      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--unknown:hover,
+      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--missing:hover {
+        background: linear-gradient(-60deg, #417a9b 5%, #67c1f5 95%);
+        color: #fff !important;
+      }
+
+      .${BADGE_CLASS}--page .${BADGE_CLASS}__dot {
+        width: 8px;
+        height: 8px;
+        flex-shrink: 0;
+      }
+
+      .${BADGE_CLASS}--page .${BADGE_CLASS}__label {
+        color: inherit;
+        overflow: visible;
+        text-overflow: clip;
+      }
+
+      .${BADGE_CLASS}--page.${BADGE_CLASS}--loading {
+        pointer-events: none;
+        cursor: wait;
+      }
+
+      .${BADGE_CLASS}--page.${BADGE_CLASS}--loading .${BADGE_CLASS}__dot {
+        width: 12px;
+        height: 12px;
       }
 
       .${BADGE_CLASS}__tooltip {
@@ -1142,41 +1206,37 @@
   
     function createLoaderBadge(isPage = false) {
       const badge = document.createElement('span');
-      badge.className = `${BADGE_CLASS} ${BADGE_CLASS}--loading${isPage ? ` ${BADGE_CLASS}--page` : ''}`;
-      badge.innerHTML = `<span class="${BADGE_CLASS}__dot"></span><span class="${BADGE_CLASS}__label">${escapeHtml(t('loading'))}</span>`;
+      const pageClasses = isPage ? ` btnv6_blue_hoverfade btn_medium ${BADGE_CLASS}--page` : '';
+      badge.className = `${BADGE_CLASS} ${BADGE_CLASS}--loading${pageClasses}`;
+      if (isPage) {
+        badge.innerHTML = `<span><span class="${BADGE_CLASS}__dot"></span><span class="${BADGE_CLASS}__label">${escapeHtml(t('loading'))}</span></span>`;
+      } else {
+        badge.innerHTML = `<span class="${BADGE_CLASS}__dot"></span><span class="${BADGE_CLASS}__label">${escapeHtml(t('loading'))}</span>`;
+      }
       return badge;
     }
-  
+
     function renderBadge(entry, options = {}) {
       const { isPage = false } = options;
       const game = entry?.data || null;
       const type = getStatusType(game);
       const label = getStatusLabel(game, type);
       const href = game?.slug ? `${SITE_BASE}/${game.slug}` : SITE_BASE;
-  
+
       const badge = document.createElement('a');
-      badge.className = `${BADGE_CLASS} ${BADGE_CLASS}--${type}${isPage ? ` ${BADGE_CLASS}--page` : ''}`;
+      const pageClasses = isPage ? ` btnv6_blue_hoverfade btn_medium ${BADGE_CLASS}--page` : '';
+      badge.className = `${BADGE_CLASS} ${BADGE_CLASS}--${type}${pageClasses}`;
       badge.href = href;
       badge.target = '_blank';
       badge.rel = 'noopener noreferrer';
       badge.setAttribute('data-gs-processed', '1');
-  
+
       if (isPage) {
-        const meta = [];
-        if (game?.protections) meta.push(`${t('protection')}: ${game.protections}`);
-        const groupName = getLocalizedGroup(game);
-        if (groupName) meta.push(`${t('group')}: ${groupName}`);
-        badge.innerHTML = `
-          <span class="${BADGE_CLASS}__dot"></span>
-          <span>
-            <span class="${BADGE_CLASS}__label">${escapeHtml(label)}</span>
-            ${meta.length ? `<span class="${BADGE_CLASS}__meta">${escapeHtml(meta.join(' · '))}</span>` : ''}
-          </span>
-        `;
+        badge.innerHTML = `<span><span class="${BADGE_CLASS}__dot"></span><span class="${BADGE_CLASS}__label">${escapeHtml(label)}</span></span>`;
       } else {
         badge.innerHTML = `<span class="${BADGE_CLASS}__dot"></span><span class="${BADGE_CLASS}__label">${escapeHtml(label)}</span>`;
       }
-  
+
       bindTooltip(badge, entry);
       return badge;
     }
@@ -1403,26 +1463,19 @@
     async function renderGamePage() {
       const appId = getPageAppId();
       if (!appId) return;
-  
-      const anchor =
-        document.querySelector('.apphub_AppName') ||
-        document.querySelector('#appHubAppName') ||
-        document.querySelector('.game_area_purchase_game_wrapper') ||
-        document.querySelector('#game_highlights');
-  
+
+      const anchor = document.querySelector('.apphub_OtherSiteInfo');
       if (!anchor || anchor.dataset.gsPageProcessed === '1') return;
+      if (anchor.querySelector(`.${BADGE_CLASS}`)) return;
+
       anchor.dataset.gsPageProcessed = '1';
-  
+
       const loader = createLoaderBadge(true);
-      if (anchor.matches('.apphub_AppName, #appHubAppName')) {
-        anchor.insertAdjacentElement('afterend', loader);
-      } else {
-        anchor.prepend(loader);
-      }
-  
+      anchor.prepend(loader);
+
       const title = getPageTitle();
       const link = document.querySelector(`a[href*="/app/${appId}/"]`) || { href: location.pathname };
-  
+
       try {
         const entry = await loadGame(appId, link, title);
         loader.replaceWith(renderBadge(entry, { isPage: true }));
