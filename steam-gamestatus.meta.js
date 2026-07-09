@@ -10,7 +10,7 @@
 // @name:ko           Steam GameStatus — 크랙 상태
 // @name:pl           Steam GameStatus — status cracka
 // @namespace         https://github.com/NemoKing1210/steam-gamestatus
-// @version           1.0.0
+// @version           1.1.0
 // @description       Shows game crack status from gamestatus.info on Steam store cards and game pages
 // @description:ru    Показывает статус взлома игр с gamestatus.info на карточках Steam и страницах игр
 // @description:zh-CN 在 Steam 商店卡片和游戏页面显示来自 gamestatus.info 的破解状态

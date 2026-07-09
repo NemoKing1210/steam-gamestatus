@@ -10,7 +10,7 @@
 // @name:ko           Steam GameStatus — 크랙 상태
 // @name:pl           Steam GameStatus — status cracka
 // @namespace         https://github.com/NemoKing1210/steam-gamestatus
-// @version           1.0.0
+// @version           1.1.0
 // @description       Shows game crack status from gamestatus.info on Steam store cards and game pages
 // @description:ru    Показывает статус взлома игр с gamestatus.info на карточках Steam и страницах игр
 // @description:zh-CN 在 Steam 商店卡片和游戏页面显示来自 gamestatus.info 的破解状态
@@ -48,8 +48,14 @@
     const CACHE_KEY = 'gs_steam_cache_v3';
     const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
     const NEGATIVE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
-    const MAX_CONCURRENT = 4;
-    const CARD_ROOT_MARGIN = '180px 0px';
+    const MAX_CONCURRENT = 2;
+    const CARD_ROOT_MARGIN = '80px 0px';
+    const SCAN_DEBOUNCE_MS = 450;
+    const SCROLL_IDLE_MS = 150;
+    const CACHE_PERSIST_MS = 1000;
+    const REQUEST_DELAY_MS = 75;
+    const HYDRATE_BATCH_SIZE = 3;
+    const MAX_SLUG_ATTEMPTS = 2;
     const BADGE_CLASS = 'gs-steam-badge';
 
     const SUPPORTED_LOCALES = ['en', 'ru', 'zh', 'es', 'pt', 'de', 'fr', 'ja', 'ko', 'pl'];
@@ -333,9 +339,24 @@
   
     /** @type {Map<string, Promise<any|null>>} */
     const inflight = new Map();
-    /** @type {string[]} */
+    /** @type {Array<{ task: () => Promise<unknown>, resolve: (value: unknown) => void, reject: (reason?: unknown) => void }>} */
     const queue = [];
     let activeRequests = 0;
+    /** @type {Record<string, unknown>|null} */
+    let memoryCache = null;
+    let cacheDirty = false;
+    let cachePersistTimer = null;
+    let mutationObserver = null;
+    let isScrolling = false;
+    let scrollIdleTimer = null;
+    let hydrateFlushRaf = null;
+    let hasInitialScan = false;
+    /** @type {Element[]} */
+    const pendingScanNodes = [];
+    /** @type {Array<{ card: Element, appId: string, link: HTMLAnchorElement|{ href: string }, title: string }>} */
+    const hydrationQueue = [];
+
+    const MUTATION_OBSERVER_OPTIONS = { childList: true, subtree: true };
   
     GM_addStyle(`
       .${BADGE_CLASS} {
@@ -361,7 +382,6 @@
         letter-spacing: 0.01em;
         text-decoration: none;
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-        backdrop-filter: blur(8px);
         pointer-events: auto;
         transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
         overflow: hidden;
@@ -565,18 +585,37 @@
       }
     `);
   
-    function readCache() {
+    function loadMemoryCache() {
+      if (memoryCache) return memoryCache;
       try {
-        return JSON.parse(GM_getValue(CACHE_KEY, '{}')) || {};
+        memoryCache = JSON.parse(GM_getValue(CACHE_KEY, '{}')) || {};
       } catch {
-        return {};
+        memoryCache = {};
       }
+      return memoryCache;
     }
-  
+
+    function readCache() {
+      return loadMemoryCache();
+    }
+
+    function persistCacheNow() {
+      if (!cacheDirty || !memoryCache) return;
+      GM_setValue(CACHE_KEY, JSON.stringify(memoryCache));
+      cacheDirty = false;
+    }
+
+    function scheduleCachePersist() {
+      cacheDirty = true;
+      clearTimeout(cachePersistTimer);
+      cachePersistTimer = setTimeout(persistCacheNow, CACHE_PERSIST_MS);
+    }
+
     function writeCache(cache) {
-      GM_setValue(CACHE_KEY, JSON.stringify(cache));
+      memoryCache = cache;
+      scheduleCachePersist();
     }
-  
+
     function getCached(appId) {
       const entry = readCache()[String(appId)];
       if (!entry) return null;
@@ -584,7 +623,7 @@
       if (Date.now() - entry.ts > ttl) return null;
       return entry;
     }
-  
+
     function setCached(appId, payload) {
       const cache = readCache();
       cache[String(appId)] = { ...payload, ts: Date.now() };
@@ -827,8 +866,9 @@
   
       const slugs = buildSlugCandidates(appId, link, title);
       const triedUrls = slugs.map(buildApiUrl);
-  
-      for (const slug of slugs) {
+      const slugsToTry = slugs.slice(0, MAX_SLUG_ATTEMPTS);
+
+      for (const slug of slugsToTry) {
         try {
           const data = await fetchBySlug(slug, appId);
           if (data) {
@@ -859,29 +899,36 @@
       return entry;
     }
   
+    function startQueueItem(item) {
+      activeRequests += 1;
+      item
+        .task()
+        .then(item.resolve)
+        .catch(item.reject)
+        .finally(() => {
+          activeRequests -= 1;
+          setTimeout(drainQueue, REQUEST_DELAY_MS);
+        });
+    }
+
+    function drainQueue() {
+      while (activeRequests < MAX_CONCURRENT && queue.length > 0) {
+        startQueueItem(queue.shift());
+      }
+    }
+
     function enqueue(task) {
       return new Promise((resolve, reject) => {
         queue.push({ task, resolve, reject });
         drainQueue();
       });
     }
-  
-    function drainQueue() {
-      while (activeRequests < MAX_CONCURRENT && queue.length > 0) {
-        const item = queue.shift();
-        activeRequests += 1;
-        item.task()
-          .then(item.resolve)
-          .catch(item.reject)
-          .finally(() => {
-            activeRequests -= 1;
-            drainQueue();
-          });
-      }
-    }
-  
+
     function loadGame(appId, link, title) {
       const key = String(appId);
+      const cached = getCached(key);
+      if (cached) return Promise.resolve(cached);
+
       if (!inflight.has(key)) {
         inflight.set(
           key,
@@ -1034,44 +1081,54 @@
     }
   
     function bindTooltip(badge, entry) {
-      const tip = ensureTooltip();
-      let hideTimer = null;
-  
-      const show = () => {
-        clearTimeout(hideTimer);
-        tip.innerHTML = formatTooltip(entry);
-        tip.classList.add(`${BADGE_CLASS}__tooltip--visible`, `${BADGE_CLASS}__tooltip--interactive`);
-  
-        const rect = badge.getBoundingClientRect();
-        const tipRect = tip.getBoundingClientRect();
-        let left = rect.left;
-        let top = rect.bottom + 8;
-  
-        if (left + tipRect.width > window.innerWidth - 12) {
-          left = window.innerWidth - tipRect.width - 12;
-        }
-        if (top + tipRect.height > window.innerHeight - 12) {
-          top = rect.top - tipRect.height - 8;
-        }
-  
-        tip.style.left = `${Math.max(12, left)}px`;
-        tip.style.top = `${Math.max(12, top)}px`;
+      const activate = () => {
+        badge.removeEventListener('mouseenter', activate);
+        badge.removeEventListener('focus', activate);
+
+        const tip = ensureTooltip();
+        let hideTimer = null;
+
+        const show = () => {
+          clearTimeout(hideTimer);
+          tip.innerHTML = formatTooltip(entry);
+          tip.classList.add(`${BADGE_CLASS}__tooltip--visible`, `${BADGE_CLASS}__tooltip--interactive`);
+
+          const rect = badge.getBoundingClientRect();
+          const tipRect = tip.getBoundingClientRect();
+          let left = rect.left;
+          let top = rect.bottom + 8;
+
+          if (left + tipRect.width > window.innerWidth - 12) {
+            left = window.innerWidth - tipRect.width - 12;
+          }
+          if (top + tipRect.height > window.innerHeight - 12) {
+            top = rect.top - tipRect.height - 8;
+          }
+
+          tip.style.left = `${Math.max(12, left)}px`;
+          tip.style.top = `${Math.max(12, top)}px`;
+        };
+
+        const scheduleHide = () => {
+          clearTimeout(hideTimer);
+          hideTimer = setTimeout(() => {
+            tip.classList.remove(`${BADGE_CLASS}__tooltip--visible`, `${BADGE_CLASS}__tooltip--interactive`);
+          }, 120);
+        };
+
+        badge.addEventListener('mouseenter', show);
+        badge.addEventListener('focus', show);
+        badge.addEventListener('mouseleave', scheduleHide);
+        badge.addEventListener('blur', scheduleHide);
+
+        tip.addEventListener('mouseenter', () => clearTimeout(hideTimer));
+        tip.addEventListener('mouseleave', scheduleHide);
+
+        show();
       };
-  
-      const scheduleHide = () => {
-        clearTimeout(hideTimer);
-        hideTimer = setTimeout(() => {
-          tip.classList.remove(`${BADGE_CLASS}__tooltip--visible`, `${BADGE_CLASS}__tooltip--interactive`);
-        }, 120);
-      };
-  
-      badge.addEventListener('mouseenter', show);
-      badge.addEventListener('focus', show);
-      badge.addEventListener('mouseleave', scheduleHide);
-      badge.addEventListener('blur', scheduleHide);
-  
-      tip.addEventListener('mouseenter', () => clearTimeout(hideTimer));
-      tip.addEventListener('mouseleave', scheduleHide);
+
+      badge.addEventListener('mouseenter', activate);
+      badge.addEventListener('focus', activate);
     }
   
     function createLoaderBadge(isPage = false) {
@@ -1116,10 +1173,73 @@
     }
   
     function ensureRelativePosition(element) {
-      const style = getComputedStyle(element);
-      if (style.position === 'static') {
-        element.style.position = 'relative';
+      const inlinePosition = element.style.position;
+      if (inlinePosition && inlinePosition !== 'static') return;
+      if (!inlinePosition) {
+        const computed = getComputedStyle(element).position;
+        if (computed !== 'static') return;
       }
+      element.style.position = 'relative';
+    }
+
+    function pauseMutationObserver() {
+      mutationObserver?.disconnect();
+    }
+
+    function resumeMutationObserver() {
+      if (mutationObserver && document.body) {
+        mutationObserver.observe(document.body, MUTATION_OBSERVER_OPTIONS);
+      }
+    }
+
+    function isRelevantAddedNode(node) {
+      if (node.nodeType !== Node.ELEMENT_NODE) return false;
+      const el = /** @type {Element} */ (node);
+      if (el.classList?.contains(BADGE_CLASS)) return false;
+      if (el.closest?.(`.${BADGE_CLASS}__tooltip`)) return false;
+      if (el.closest?.('[data-gs-observed="1"]')) return false;
+      if (el.matches?.('a[href*="/app/"]')) return true;
+      return Boolean(el.querySelector?.('a[href*="/app/"]'));
+    }
+
+    function collectRelevantAddedNodes(mutations) {
+      const nodes = [];
+      for (const mutation of mutations) {
+        for (const node of mutation.addedNodes) {
+          if (isRelevantAddedNode(node)) {
+            nodes.push(/** @type {Element} */ (node));
+          }
+        }
+      }
+      return nodes;
+    }
+
+    function tryAddCardFromLink(link, cards) {
+      if (link.classList.contains(BADGE_CLASS)) return;
+      if (link.closest('[data-gs-observed="1"]')) return;
+
+      const appId = extractAppIdFromHref(link.href);
+      if (!appId) return;
+
+      const card = findCardContainer(link);
+      if (!card || card.closest('.apphub_AppName, .game_area_purchase, #game_highlights')) return;
+      if (card.querySelector(`.${BADGE_CLASS}:not(.${BADGE_CLASS}--loading)`)) return;
+      if (card.dataset.gsObserved === '1' && card.querySelector(`.${BADGE_CLASS}--loading`)) return;
+
+      const cardLink = getCardLink(card);
+      const title = getCardTitle(card, cardLink);
+      const existing = cards.get(appId);
+      if (!existing || card.contains(existing.card)) {
+        cards.set(appId, { card, link: cardLink, title });
+      }
+    }
+
+    function collectCardsFromRoot(root, cards = new Map()) {
+      if (root instanceof HTMLAnchorElement && root.href.includes('/app/')) {
+        tryAddCardFromLink(root, cards);
+      }
+      root.querySelectorAll('a[href*="/app/"]').forEach((link) => tryAddCardFromLink(link, cards));
+      return cards;
     }
   
     function resolveCardLink(card) {
@@ -1156,78 +1276,119 @@
     }
   
     function collectCards() {
-      /** @type {Map<string, { card: Element, link: HTMLAnchorElement, title: string }>} */
+      return collectCardsFromRoot(document);
+    }
+
+    function collectCardsFromNodes(nodes) {
       const cards = new Map();
-  
-      document.querySelectorAll('a[href*="/app/"]').forEach((link) => {
-        if (link.classList.contains(BADGE_CLASS)) return;
-  
-        const appId = extractAppIdFromHref(link.href);
-        if (!appId) return;
-  
-        const card = findCardContainer(link);
-        if (!card || card.closest('.apphub_AppName, .game_area_purchase, #game_highlights')) return;
-        if (card.querySelector(`.${BADGE_CLASS}:not(.${BADGE_CLASS}--loading)`)) return;
-        if (card.dataset.gsObserved === '1' && card.querySelector(`.${BADGE_CLASS}--loading`)) return;
-  
-        const cardLink = getCardLink(card);
-        const title = getCardTitle(card, cardLink);
-        const existing = cards.get(appId);
-        if (!existing || card.contains(existing.card)) {
-          cards.set(appId, { card, link, title });
-        }
-      });
-  
+      nodes.forEach((node) => collectCardsFromRoot(node, cards));
       return cards;
     }
-  
+
+    function enqueueHydration(card, appId, link, title) {
+      visibilityObserver.unobserve(card);
+      hydrationQueue.push({ card, appId, link, title });
+      if (!isScrolling) {
+        flushHydrationQueue();
+      }
+    }
+
+    function flushHydrationQueue() {
+      if (hydrateFlushRaf || hydrationQueue.length === 0 || isScrolling) return;
+
+      hydrateFlushRaf = requestAnimationFrame(() => {
+        hydrateFlushRaf = null;
+        const batch = hydrationQueue.splice(0, HYDRATE_BATCH_SIZE);
+        batch.forEach(({ card, appId, link, title }) => {
+          hydrateCard(card, appId, link, title);
+        });
+        if (hydrationQueue.length > 0) {
+          flushHydrationQueue();
+        }
+      });
+    }
+
+    function setupScrollListener() {
+      window.addEventListener(
+        'scroll',
+        () => {
+          isScrolling = true;
+          clearTimeout(scrollIdleTimer);
+          scrollIdleTimer = setTimeout(() => {
+            isScrolling = false;
+            flushHydrationQueue();
+          }, SCROLL_IDLE_MS);
+        },
+        { passive: true }
+      );
+    }
+
     const visibilityObserver = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
-  
+
           const card = entry.target;
           const appId = card.dataset.gsAppId;
+          if (!appId) return;
+
           const link = resolveCardLink(card);
-          const title = getCardTitle(card, link);
-  
-          visibilityObserver.unobserve(card);
-          hydrateCard(card, appId, link, title);
+          const title = card.dataset.gsTitle || '';
+          enqueueHydration(card, appId, link, title);
         });
       },
       { root: null, rootMargin: CARD_ROOT_MARGIN, threshold: 0.05 }
     );
-  
+
     async function hydrateCard(card, appId, link, title) {
       const loader = card.querySelector(`.${BADGE_CLASS}--loading`);
       try {
         const entry = await loadGame(appId, link, title);
         const badge = renderBadge(entry, { isPage: false });
-        loader?.replaceWith(badge);
+        requestAnimationFrame(() => {
+          loader?.replaceWith(badge);
+        });
       } catch {
         const badge = renderBadge({ data: null, missing: true, triedUrls: [] }, { isPage: false });
         badge.querySelector(`.${BADGE_CLASS}__label`).textContent = t('loadError');
-        loader?.replaceWith(badge);
+        requestAnimationFrame(() => {
+          loader?.replaceWith(badge);
+        });
       }
     }
-  
-    function observeCards() {
-      const cards = collectCards();
-  
-      cards.forEach(({ card, link, title }, appId) => {
-        if (card.dataset.gsObserved === '1') return;
-  
-        ensureRelativePosition(card);
-        card.dataset.gsObserved = '1';
-        card.dataset.gsAppId = appId;
-        card.dataset.gsTitle = title;
-  
-        if (!card.querySelector(`.${BADGE_CLASS}`)) {
-          card.appendChild(createLoaderBadge(false));
+
+    function observeCardsMap(cards) {
+      if (!cards.size) return;
+
+      pauseMutationObserver();
+      requestAnimationFrame(() => {
+        try {
+          cards.forEach(({ card, link, title }, appId) => {
+            if (card.dataset.gsObserved === '1') return;
+
+            ensureRelativePosition(card);
+            card.dataset.gsObserved = '1';
+            card.dataset.gsAppId = appId;
+            card.dataset.gsTitle = title;
+
+            if (!card.querySelector(`.${BADGE_CLASS}`)) {
+              card.appendChild(createLoaderBadge(false));
+            }
+
+            visibilityObserver.observe(card);
+          });
+        } finally {
+          resumeMutationObserver();
         }
-  
-        visibilityObserver.observe(card);
       });
+    }
+
+    function observeCards() {
+      observeCardsMap(collectCards());
+    }
+
+    function observeCardsFromNodes(nodes) {
+      observeCardsMap(collectCardsFromNodes(nodes));
     }
   
     async function renderGamePage() {
@@ -1271,23 +1432,44 @@
       };
     }
   
-    const scheduleScan = debounce(() => {
+    function runScan() {
       if (isGamePage()) {
         renderGamePage();
+        pendingScanNodes.length = 0;
+        return;
+      }
+
+      if (!hasInitialScan) {
+        hasInitialScan = true;
+        pendingScanNodes.length = 0;
+        observeCards();
+        return;
+      }
+
+      if (pendingScanNodes.length > 0) {
+        const nodes = pendingScanNodes.splice(0, pendingScanNodes.length);
+        observeCardsFromNodes(nodes);
       } else {
         observeCards();
       }
-    }, 200);
-  
+    }
+
+    const scheduleScan = debounce(runScan, SCAN_DEBOUNCE_MS);
+
     function init() {
+      loadMemoryCache();
+      setupScrollListener();
+      window.addEventListener('pagehide', persistCacheNow);
       scheduleScan();
-  
-      const mutationObserver = new MutationObserver((mutations) => {
-        const hasAddedNodes = mutations.some((mutation) => mutation.addedNodes.length > 0);
-        if (hasAddedNodes) scheduleScan();
+
+      mutationObserver = new MutationObserver((mutations) => {
+        const nodes = collectRelevantAddedNodes(mutations);
+        if (!nodes.length) return;
+        pendingScanNodes.push(...nodes);
+        scheduleScan();
       });
-  
-      mutationObserver.observe(document.body, { childList: true, subtree: true });
+
+      mutationObserver.observe(document.body, MUTATION_OBSERVER_OPTIONS);
     }
   
     if (document.readyState === 'loading') {

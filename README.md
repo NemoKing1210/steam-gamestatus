@@ -2,7 +2,7 @@
 
 [![Install userscript](https://img.shields.io/badge/Install-userscript-66c0f4?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/steam-gamestatus/main/steam-gamestatus.user.js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-green?style=for-the-badge)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.1.0-green?style=for-the-badge)](CHANGELOG.md)
 
 A userscript for the Steam store and Steam Community that shows crack and DRM protection status for games using data from [GameStatus.info](https://gamestatus.info).
 
@@ -127,7 +127,7 @@ Scan DOM for links matching /app/{appId}/
        Check local cache (GM_getValue)
                 │
        cache miss ──► GET gamestatus.info/back/api/gameinfo/game/{slug}/
-                │         (up to 4 concurrent requests, slug fallback chain)
+                │         (up to 2 concurrent requests, slug fallback chain)
                 ▼
        Match response by steam_prod_id, cache result
                 │
@@ -158,7 +158,7 @@ Duplicate in-flight requests for the same App ID are deduplicated.
 
 ### Dynamic content
 
-Steam loads many lists via AJAX (infinite scroll, tab switches). A `MutationObserver` watches for new DOM nodes and schedules a debounced re-scan (200 ms) so newly appeared cards get badges too.
+Steam loads many lists via AJAX (infinite scroll, tab switches). A filtered `MutationObserver` watches for new game cards and schedules an incremental debounced re-scan (`SCAN_DEBOUNCE_MS`). Hydration pauses during active scrolling and resumes in small batches when scrolling stops.
 
 ## Repository layout
 
@@ -226,10 +226,16 @@ Constants near the top of `steam-gamestatus.user.js` can be adjusted:
 
 | Constant | Default | Description |
 |----------|---------|-------------|
+| `MAX_CONCURRENT` | 2 | Parallel API requests |
+| `REQUEST_DELAY_MS` | 75 ms | Delay between starting queued API tasks |
+| `MAX_SLUG_ATTEMPTS` | 2 | Slug candidates tried per game lookup |
 | `CACHE_TTL_MS` | 6 hours | Cache lifetime for found games |
 | `NEGATIVE_CACHE_TTL_MS` | 24 hours | Cache lifetime for “not found” results |
-| `MAX_CONCURRENT` | 4 | Parallel API requests |
-| `CARD_ROOT_MARGIN` | `180px 0px` | How far ahead of the viewport to prefetch cards |
+| `CACHE_PERSIST_MS` | 1000 ms | Debounce interval for writing cache to storage |
+| `CARD_ROOT_MARGIN` | `80px 0px` | How far ahead of the viewport to prefetch cards |
+| `SCAN_DEBOUNCE_MS` | 450 ms | Debounce for DOM mutation rescans |
+| `SCROLL_IDLE_MS` | 150 ms | Wait after scroll stops before hydrating cards |
+| `HYDRATE_BATCH_SIZE` | 3 | Cards hydrated per animation frame |
 
 API responses use the browser’s `Accept-Language` header (fallback `en-US`). Dates are formatted with `navigator.language`.
 
