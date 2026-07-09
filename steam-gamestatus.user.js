@@ -450,9 +450,14 @@
         --gs-text: #e3eaef;
       }
 
-      .${BADGE_CLASS}--not-cracked {
-        --gs-accent: #bfbfbf;
-        --gs-text: #b0aeac;
+      .${BADGE_CLASS}--not-cracked-recent {
+        --gs-accent: #ffb321;
+        --gs-text: #e3eaef;
+      }
+
+      .${BADGE_CLASS}--not-cracked-old {
+        --gs-accent: #f87171;
+        --gs-text: #fecaca;
       }
 
       .${BADGE_CLASS}--release-today {
@@ -512,7 +517,8 @@
 
       .${BADGE_CLASS}--page.${BADGE_CLASS}--cracked,
       .${BADGE_CLASS}--page.${BADGE_CLASS}--bypass,
-      .${BADGE_CLASS}--page.${BADGE_CLASS}--not-cracked,
+      .${BADGE_CLASS}--page.${BADGE_CLASS}--not-cracked-recent,
+      .${BADGE_CLASS}--page.${BADGE_CLASS}--not-cracked-old,
       .${BADGE_CLASS}--page.${BADGE_CLASS}--release-today,
       .${BADGE_CLASS}--page.${BADGE_CLASS}--unknown,
       .${BADGE_CLASS}--page.${BADGE_CLASS}--missing {
@@ -522,7 +528,8 @@
 
       a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--cracked:hover,
       a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--bypass:hover,
-      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--not-cracked:hover,
+      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--not-cracked-recent:hover,
+      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--not-cracked-old:hover,
       a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--release-today:hover,
       a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--unknown:hover,
       a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--missing:hover {
@@ -985,8 +992,8 @@
   
     function formatDate(value) {
       if (!value) return null;
-      const date = new Date(value);
-      if (Number.isNaN(date.getTime())) return value;
+      const date = parseGameDate(value);
+      if (!date) return value;
       return date.toLocaleDateString(getApiLanguage());
     }
   
@@ -1081,12 +1088,27 @@
       return inflight.get(key);
     }
   
+    function parseGameDate(value) {
+      if (!value) return null;
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? null : date;
+    }
+
+    function getNotCrackedVariant(game) {
+      const release = parseGameDate(game.release_date);
+      if (!release) return 'not-cracked-recent';
+
+      const monthAgo = new Date();
+      monthAgo.setMonth(monthAgo.getMonth() - 1);
+      return release > monthAgo ? 'not-cracked-recent' : 'not-cracked-old';
+    }
+
     function getStatusType(game) {
       if (!game) return 'missing';
-  
+
       const status = String(game.readable_status || '').toLowerCase();
       const groups = String(game.hacked_groups_en || game.hacked_groups || '').toLowerCase();
-  
+
       if (/release today|релиз сегодня|выходит сегодня/.test(status)) {
         return 'release-today';
       }
@@ -1094,19 +1116,19 @@
         return 'bypass';
       }
       if (/not cracked|не взлом|не взломан|unbroken|unreleased crack/.test(status)) {
-        return 'not-cracked';
+        return getNotCrackedVariant(game);
       }
       if (game.crack_date || /cracked|взлом/.test(status)) {
         return 'cracked';
       }
       return 'unknown';
     }
-  
+
     function getStatusLabel(game, type) {
       if (!game) return t('notInDatabase');
       if (game.readable_status) return game.readable_status;
       if (type === 'cracked') return t('cracked');
-      if (type === 'not-cracked') return t('notCracked');
+      if (type === 'not-cracked-recent' || type === 'not-cracked-old') return t('notCracked');
       if (type === 'bypass') return t('protectionBypass');
       if (type === 'release-today') return t('releaseToday');
       return t('unknownStatus');

@@ -77,7 +77,8 @@ Each badge has a colored dot that reflects the game’s crack status:
 | Color | Status | Meaning |
 |-------|--------|---------|
 | Green | Cracked | Game has been cracked; `crack_date` is set or status indicates a crack |
-| Gray | Not cracked | Game is not cracked yet |
+| Orange | Not cracked (recent) | Not cracked yet; released less than one month ago |
+| Red | Not cracked (long wait) | Not cracked yet; released more than one month ago |
 | Orange | Protection bypass | Bypass method (e.g. hypervisor bypass) rather than a traditional crack |
 | Blue | Release today | Game releases today; crack status may still be pending |
 | Gray | Unknown / Not in database | Status unclear, or game not found on GameStatus.info |
