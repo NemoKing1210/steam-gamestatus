@@ -10,7 +10,7 @@
 // @name:ko           Steam GameStatus — 크랙 상태
 // @name:pl           Steam GameStatus — status cracka
 // @namespace         https://github.com/NemoKing1210/steam-gamestatus
-// @version           1.1.1
+// @version           1.2.0
 // @description       Shows game crack status from gamestatus.info on Steam store cards and game pages
 // @description:ru    Показывает статус взлома игр с gamestatus.info на карточках Steam и страницах игр
 // @description:zh-CN 在 Steam 商店卡片和游戏页面显示来自 gamestatus.info 的破解状态
@@ -899,6 +899,15 @@
         const element = card.querySelector(selector);
         if (element) add(element.textContent);
       }
+
+      if (isDsAppCapsule(card)) {
+        const capsuleLink = link || getCardLink(card);
+        add(card.querySelector('img[alt]')?.alt);
+        const slugFromCapsule = extractSlugFromHref(capsuleLink?.href);
+        if (slugFromCapsule && isValidSlug(slugFromCapsule)) {
+          add(slugFromCapsule.replace(/-/g, ' '));
+        }
+      }
   
       add(
         card.querySelector(
@@ -1400,7 +1409,10 @@
       const el = /** @type {Element} */ (node);
       if (el.classList?.contains(BADGE_CLASS)) return false;
       if (el.closest?.(`.${BADGE_CLASS}__tooltip`)) return false;
-      if (el.closest?.('[data-gs-observed="1"]')) return false;
+      if (el.closest?.('[data-gs-observed="1"]')) {
+        const observed = el.closest('[data-gs-observed="1"]');
+        if (observed && !hasMultipleGames(observed)) return false;
+      }
       if (el.matches?.('a[href*="/app/"]')) return true;
       return Boolean(el.querySelector?.('a[href*="/app/"]'));
     }
@@ -1439,9 +1451,42 @@
       return getCardAppId(card) || String(fallbackAppId || '');
     }
 
+    function countDistinctAppIds(element) {
+      if (!element) return 0;
+      return new Set(
+        [...element.querySelectorAll('[data-ds-appid]')]
+          .map((el) => el.getAttribute('data-ds-appid'))
+          .filter(Boolean)
+      ).size;
+    }
+
+    function hasMultipleGames(element) {
+      return countDistinctAppIds(element) > 1;
+    }
+
+    function findDsAppCard(link) {
+      const appId = extractAppIdFromHref(link.href);
+      if (!appId) return null;
+
+      const inner =
+        link.querySelector(`[data-ds-appid="${appId}"]`) || link.querySelector('[data-ds-appid]');
+      if (inner) {
+        const innerId = inner.getAttribute('data-ds-appid');
+        if (!innerId || innerId === appId) return inner;
+      }
+
+      const ancestor = link.closest('[data-ds-appid]');
+      if (ancestor?.getAttribute('data-ds-appid') === appId) return ancestor;
+
+      return null;
+    }
+
+    function isDsAppCapsule(card) {
+      return Boolean(card?.hasAttribute?.('data-ds-appid'));
+    }
+
     function tryAddCardFromLink(link, cards) {
       if (link.classList.contains(BADGE_CLASS)) return;
-      if (link.closest('[data-gs-observed="1"]')) return;
       if (link.closest('.home_content_reason')) return;
 
       const appId = extractAppIdFromHref(link.href);
@@ -1454,6 +1499,7 @@
       if (cardAppId && cardAppId !== appId) return;
 
       const anchor = getBadgeAnchor(card);
+      if (!anchor) return;
       if (anchor.querySelector(`.${BADGE_CLASS}:not(.${BADGE_CLASS}--loading)`)) return;
       if (anchor.dataset.gsObserved === '1' && anchor.querySelector(`.${BADGE_CLASS}--loading`)) return;
 
@@ -1526,6 +1572,10 @@
     function getBadgeAnchor(card) {
       if (!card) return card;
 
+      if (isDsAppCapsule(card)) {
+        return card;
+      }
+
       if (isChartTableRow(card)) {
         const priceAnchor = getChartPriceAnchor(card);
         if (priceAnchor) return priceAnchor;
@@ -1560,10 +1610,27 @@
       homeRoot.querySelectorAll('.single_buttonbar .' + BADGE_CLASS).forEach((badge) => badge.remove());
     }
 
+    function cleanupMisplacedGroupBadge(card, anchor) {
+      if (!card || !hasMultipleGames(card)) return;
+
+      card.querySelectorAll('.' + BADGE_CLASS).forEach((badge) => {
+        if (!anchor.contains(badge)) badge.remove();
+      });
+
+      if (card.dataset.gsObserved === '1' && card !== anchor) {
+        delete card.dataset.gsObserved;
+        delete card.dataset.gsAppId;
+        delete card.dataset.gsTitle;
+      }
+    }
+
     function shouldPreferCard(candidate, current) {
       if (!current) return true;
       if (current.contains(candidate)) return false;
       if (candidate.contains(current)) return true;
+
+      if (isDsAppCapsule(candidate) && !isDsAppCapsule(current)) return true;
+      if (isDsAppCapsule(current) && !isDsAppCapsule(candidate)) return false;
 
       if (isChartTableRow(candidate) && !isChartTableRow(current)) return true;
       if (isChartTableRow(current) && !isChartTableRow(candidate)) return false;
@@ -1582,6 +1649,10 @@
       const homeGamelink = findHomeContentGamelink(link);
       if (homeGamelink) return homeGamelink;
 
+      const dsCard = findDsAppCard(link);
+      if (dsCard) return dsCard;
+
+      const appId = extractAppIdFromHref(link.href);
       const container = link.closest(
         [
           '[data-ds-appid]',
@@ -1599,6 +1670,12 @@
         ].join(', ')
       );
 
+      if (container && hasMultipleGames(container) && appId) {
+        const specific = container.querySelector(`[data-ds-appid="${appId}"]`);
+        if (specific) return specific;
+        return null;
+      }
+
       if (container?.classList.contains('single_buttonbar')) {
         const gamelink = findHomeContentGamelink(link);
         if (gamelink) return gamelink;
@@ -1614,6 +1691,15 @@
 
       const cardAppId = getCardAppId(card);
       if (cardAppId) {
+        if (isDsAppCapsule(card)) {
+          const wrapLink =
+            card.closest(`a[href*="/app/${cardAppId}/"]`) ||
+            card.parentElement?.closest?.(`a[href*="/app/${cardAppId}/"]`);
+          if (wrapLink && extractAppIdFromHref(wrapLink.href) === cardAppId) {
+            return wrapLink;
+          }
+        }
+
         const matchedLink = card.querySelector(`a[href*="/app/${cardAppId}/"]`);
         if (matchedLink) return matchedLink;
       }
@@ -1682,6 +1768,7 @@
 
           const anchor = entry.target;
           const card =
+            anchor.closest('[data-ds-appid]') ||
             anchor.closest('tr') ||
             anchor.closest('.home_content_items[data-ds-appid], .gamelink[data-ds-appid], [data-ds-appid]') ||
             anchor;
@@ -1744,13 +1831,17 @@
             }
 
             cleanupMisplacedHomeBadge(card);
+            cleanupMisplacedGroupBadge(card, anchor);
             if (!isChart) {
               ensureRelativePosition(anchor);
             }
             anchor.dataset.gsObserved = '1';
             anchor.dataset.gsAppId = resolvedAppId;
             anchor.dataset.gsTitle = title;
-            card.dataset.gsObserved = '1';
+
+            if (!hasMultipleGames(card) || card === anchor) {
+              card.dataset.gsObserved = '1';
+            }
 
             if (!anchor.querySelector(`.${BADGE_CLASS}`)) {
               anchor.appendChild(createLoaderBadge(false, isChart));

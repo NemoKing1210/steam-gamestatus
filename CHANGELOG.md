@@ -5,6 +5,27 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-07-09
+
+### Added
+
+- Support donate button in tooltips (`gamestatus.info/#donate`) with localization
+- Torrent link as a separate green button in tooltip actions
+- Chart table rows (Top Sellers): badge in `StoreSalePriceWidgetContainer` next to price
+- Not-cracked badge colors by release age: orange (less than 1 month), red (more than 1 month)
+
+### Changed
+
+- Game page badge moved to `.apphub_OtherSiteInfo`, styled as `btnv6_blue_hoverfade btn_medium`
+- Home content single cards: badge on capsule image, not in button bar
+- Carousel / multi-game panels: one badge per `data-ds-appid` capsule
+
+### Fixed
+
+- Wrong game badge on home content singles (Stardew link in “recently played” reason)
+- Wrong app ID and missing badges in carousel slides with multiple games
+- Empty game title for capsule cards without visible title element
+
 ## [1.1.1] - 2026-07-09
 
 ### Changed
@@ -55,6 +76,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI localization for 10 languages based on browser locale (fallback: English)
 - Tampermonkey / Violentmonkey / Greasemonkey-compatible metadata and auto-update URLs
 
+[1.2.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.2.0
 [1.1.1]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.1.1
 [1.1.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.1.0
 [1.0.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.0.0
