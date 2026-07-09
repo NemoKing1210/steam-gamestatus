@@ -10,7 +10,7 @@
 // @name:ko           Steam GameStatus — 크랙 상태
 // @name:pl           Steam GameStatus — status cracka
 // @namespace         https://github.com/NemoKing1210/steam-gamestatus
-// @version           1.1.0
+// @version           1.1.1
 // @description       Shows game crack status from gamestatus.info on Steam store cards and game pages
 // @description:ru    Показывает статус взлома игр с gamestatus.info на карточках Steam и страницах игр
 // @description:zh-CN 在 Steam 商店卡片和游戏页面显示来自 gamestatus.info 的破解状态
@@ -360,226 +360,229 @@
   
     GM_addStyle(`
       .${BADGE_CLASS} {
-        --gs-accent: #66c0f4;
-        --gs-bg: rgba(15, 20, 28, 0.92);
-        --gs-border: rgba(102, 192, 244, 0.35);
-        --gs-text: #e5eef8;
-        --gs-muted: #9eb4c8;
+        --gs-accent: #67c1f5;
+        --gs-bg: #384959;
+        --gs-text: #c7d5e0;
+        --gs-muted: #8f98a0;
         position: absolute;
         top: 8px;
         left: 8px;
         z-index: 12;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
+        gap: 5px;
         max-width: calc(100% - 16px);
-        padding: 4px 8px;
-        border-radius: 999px;
-        border: 1px solid var(--gs-border);
+        padding: 0 7px;
+        border-radius: 3px;
+        border: none;
         background: var(--gs-bg);
         color: var(--gs-text);
-        font: 600 11px/1.2 "Motiva Sans", Arial, sans-serif;
-        letter-spacing: 0.01em;
+        font: 500 11px/19px "Motiva Sans", Arial, sans-serif;
         text-decoration: none;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+        box-shadow: 1px 1px 0 0 #000000;
         pointer-events: auto;
-        transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
       }
-  
+
       .${BADGE_CLASS}:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 8px 22px rgba(0, 0, 0, 0.45);
-        border-color: rgba(102, 192, 244, 0.65);
+        background: #4a5d70;
+        color: #e3eaef;
       }
-  
+
       .${BADGE_CLASS}__dot {
-        width: 8px;
-        height: 8px;
+        width: 4px;
+        height: 4px;
         border-radius: 50%;
         flex: 0 0 auto;
         background: var(--gs-accent);
-        box-shadow: 0 0 8px var(--gs-accent);
       }
-  
+
       .${BADGE_CLASS}__label {
         overflow: hidden;
         text-overflow: ellipsis;
       }
-  
+
       .${BADGE_CLASS}--loading {
-        --gs-accent: #66c0f4;
-        --gs-border: rgba(102, 192, 244, 0.25);
+        --gs-accent: #67c1f5;
         cursor: wait;
         pointer-events: none;
       }
-  
+
       .${BADGE_CLASS}--loading .${BADGE_CLASS}__dot {
-        width: 12px;
-        height: 12px;
-        border: 2px solid rgba(102, 192, 244, 0.25);
-        border-top-color: #66c0f4;
+        width: 10px;
+        height: 10px;
+        border: 2px solid rgba(103, 193, 245, 0.25);
+        border-top-color: #67c1f5;
         background: transparent;
-        box-shadow: none;
         animation: gs-spin 0.7s linear infinite;
       }
-  
+
       .${BADGE_CLASS}--cracked {
-        --gs-accent: #4ade80;
-        --gs-border: rgba(74, 222, 128, 0.45);
+        --gs-accent: #beee11;
+        --gs-bg: #4c6b22;
+        --gs-text: #beee11;
       }
-  
+
+      .${BADGE_CLASS}--cracked:hover {
+        background: #5a7f28;
+        color: #d4f54a;
+      }
+
+      .${BADGE_CLASS}--cracked .${BADGE_CLASS}__dot {
+        background: #2d4a14;
+      }
+
       .${BADGE_CLASS}--bypass {
-        --gs-accent: #fbbf24;
-        --gs-border: rgba(251, 191, 36, 0.45);
+        --gs-accent: #ffb321;
+        --gs-text: #e3eaef;
       }
-  
+
       .${BADGE_CLASS}--not-cracked {
-        --gs-accent: #f87171;
-        --gs-border: rgba(248, 113, 113, 0.45);
+        --gs-accent: #bfbfbf;
+        --gs-text: #b0aeac;
       }
-  
+
       .${BADGE_CLASS}--release-today {
-        --gs-accent: #60a5fa;
-        --gs-border: rgba(96, 165, 250, 0.45);
+        --gs-accent: #67c1f5;
+        --gs-text: #c7d5e0;
       }
-  
+
       .${BADGE_CLASS}--unknown,
       .${BADGE_CLASS}--missing {
-        --gs-accent: #94a3b8;
-        --gs-border: rgba(148, 163, 184, 0.35);
-        color: #cbd5e1;
+        --gs-accent: #8f98a0;
+        --gs-text: #b0aeac;
       }
-  
+
       .${BADGE_CLASS}--page {
         position: static;
         display: inline-flex;
         margin: 0 0 12px;
-        padding: 8px 14px;
+        padding: 4px 10px;
         font-size: 13px;
-        border-radius: 12px;
+        line-height: 1.4;
+        border-radius: 3px;
         max-width: 100%;
         white-space: normal;
       }
-  
+
       .${BADGE_CLASS}--page .${BADGE_CLASS}__meta {
         display: block;
-        margin-top: 4px;
+        margin-top: 3px;
         font-size: 11px;
-        font-weight: 500;
+        font-weight: normal;
         color: var(--gs-muted);
         white-space: normal;
         line-height: 1.35;
       }
-  
+
       .${BADGE_CLASS}__tooltip {
         position: fixed;
         z-index: 999999;
-        max-width: 380px;
-        padding: 12px 14px;
-        border-radius: 12px;
-        border: 1px solid rgba(102, 192, 244, 0.25);
-        background: rgba(10, 14, 20, 0.97);
-        color: #dbe7f3;
-        font: 500 12px/1.45 "Motiva Sans", Arial, sans-serif;
-        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+        max-width: 340px;
+        padding: 8px 12px;
+        border-radius: 2px;
+        border: none;
+        background: #3d4450;
+        color: #dcdedf;
+        font: normal 11px/1.45 "Motiva Sans", Arial, sans-serif;
+        box-shadow: 0 0 3px #000000;
         pointer-events: none;
         opacity: 0;
-        transform: translateY(4px);
-        transition: opacity 0.12s ease, transform 0.12s ease;
+        transition: opacity 0.15s ease;
+        word-wrap: break-word;
+        white-space: normal;
       }
-  
+
       .${BADGE_CLASS}__tooltip--visible {
         opacity: 1;
-        transform: translateY(0);
       }
-  
+
       .${BADGE_CLASS}__tooltip--interactive {
         pointer-events: auto;
       }
-  
+
       .${BADGE_CLASS}__tooltip strong {
         display: block;
-        margin-bottom: 8px;
-        color: #fff;
-        font-size: 14px;
+        margin-bottom: 6px;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: normal;
         line-height: 1.3;
       }
-  
+
       .${BADGE_CLASS}__tooltip .gs-tip-muted {
-        margin: 0 0 8px;
-        color: #9eb4c8;
+        margin: 0 0 6px;
+        color: #8f98a0;
       }
-  
+
       .${BADGE_CLASS}__tooltip .gs-tip-section {
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid rgba(102, 192, 244, 0.12);
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
       }
-  
+
       .${BADGE_CLASS}__tooltip .gs-tip-row {
         display: grid;
-        grid-template-columns: 92px 1fr;
-        gap: 8px;
-        margin-bottom: 6px;
+        grid-template-columns: 88px 1fr;
+        gap: 6px;
+        margin-bottom: 4px;
       }
-  
+
       .${BADGE_CLASS}__tooltip .gs-tip-row:last-child {
         margin-bottom: 0;
       }
-  
+
       .${BADGE_CLASS}__tooltip .gs-tip-label {
-        color: #7f99b0;
+        color: #8f98a0;
         font-size: 11px;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
+        font-weight: normal;
       }
-  
+
       .${BADGE_CLASS}__tooltip .gs-tip-value {
-        color: #e5eef8;
+        color: #dcdedf;
         word-break: break-word;
       }
-  
+
       .${BADGE_CLASS}__tooltip .gs-tip-desc {
         margin: 0;
-        color: #b8c9d9;
+        color: #b8bcbf;
         font-size: 11px;
-        line-height: 1.5;
+        line-height: 1.45;
       }
-  
+
       .${BADGE_CLASS}__tooltip .gs-tip-links {
-        margin: 6px 0 0;
-        padding: 0;
-        list-style: none;
+        margin: 4px 0 0;
+        padding: 0 0 0 15px;
+        list-style: disc;
       }
-  
+
       .${BADGE_CLASS}__tooltip .gs-tip-links li + li {
-        margin-top: 6px;
+        margin-top: 4px;
       }
-  
+
       .${BADGE_CLASS}__tooltip .gs-tip-links a,
       .${BADGE_CLASS}__tooltip .gs-tip-footer a {
         color: #66c0f4;
         text-decoration: none;
         word-break: break-all;
       }
-  
+
       .${BADGE_CLASS}__tooltip .gs-tip-links a:hover,
       .${BADGE_CLASS}__tooltip .gs-tip-footer a:hover {
+        color: #ffffff;
         text-decoration: underline;
       }
-  
+
       .${BADGE_CLASS}__tooltip .gs-tip-footer {
-        margin-top: 10px;
-        padding-top: 10px;
-        border-top: 1px solid rgba(102, 192, 244, 0.12);
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
         font-size: 11px;
-        color: #7f99b0;
+        color: #8f98a0;
       }
-  
+
       @keyframes gs-spin {
         to { transform: rotate(360deg); }
       }
@@ -1095,18 +1098,24 @@
 
           const rect = badge.getBoundingClientRect();
           const tipRect = tip.getBoundingClientRect();
+          const pad = 15;
           let left = rect.left;
-          let top = rect.bottom + 8;
+          let top = rect.top - tipRect.height - 7;
 
-          if (left + tipRect.width > window.innerWidth - 12) {
-            left = window.innerWidth - tipRect.width - 12;
-          }
-          if (top + tipRect.height > window.innerHeight - 12) {
-            top = rect.top - tipRect.height - 8;
+          if (top < pad) {
+            top = rect.bottom + 7;
           }
 
-          tip.style.left = `${Math.max(12, left)}px`;
-          tip.style.top = `${Math.max(12, top)}px`;
+          if (top + tipRect.height > window.innerHeight - pad) {
+            top = Math.max(pad, rect.top - tipRect.height - 7);
+          }
+
+          if (left + tipRect.width > window.innerWidth - pad) {
+            left = window.innerWidth - tipRect.width - pad;
+          }
+
+          tip.style.left = `${Math.max(pad, left)}px`;
+          tip.style.top = `${Math.max(pad, top)}px`;
         };
 
         const scheduleHide = () => {

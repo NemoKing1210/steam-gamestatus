@@ -2,7 +2,7 @@
 
 [![Install userscript](https://img.shields.io/badge/Install-userscript-66c0f4?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/steam-gamestatus/main/steam-gamestatus.user.js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.0-green?style=for-the-badge)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.1.1-green?style=for-the-badge)](CHANGELOG.md)
 
 A userscript for the Steam store and Steam Community that shows crack and DRM protection status for games using data from [GameStatus.info](https://gamestatus.info).
 
@@ -60,7 +60,7 @@ Managers compare the installed `@version` with the remote metadata to decide whe
 - **Color-coded statuses** — quick visual scan across a long list of games
 - **Lazy loading** — badges load only when cards scroll into view
 - **Smart caching** — responses are cached locally to reduce API load and speed up repeat visits
-- **Steam-like UI** — badges use Steam’s visual language (Motiva Sans, blur, rounded pills)
+- **Steam-like UI** — badges styled like Steam `.app_tag`, tooltips like dark store popovers (`#3D4450`)
 - **10 UI languages** — English, Russian, Chinese, Spanish, Portuguese, German, French, Japanese, Korean, Polish (detected from browser locale)
 
 ## Supported pages
@@ -77,11 +77,11 @@ Each badge has a colored dot that reflects the game’s crack status:
 | Color | Status | Meaning |
 |-------|--------|---------|
 | Green | Cracked | Game has been cracked; `crack_date` is set or status indicates a crack |
-| Red | Not cracked | Game is not cracked yet |
-| Yellow | Protection bypass | Bypass method (e.g. hypervisor bypass) rather than a traditional crack |
+| Gray | Not cracked | Game is not cracked yet |
+| Orange | Protection bypass | Bypass method (e.g. hypervisor bypass) rather than a traditional crack |
 | Blue | Release today | Game releases today; crack status may still be pending |
 | Gray | Unknown / Not in database | Status unclear, or game not found on GameStatus.info |
-| Light blue (spinner) | Loading | Data is being fetched from the API |
+| Blue (spinner) | Loading | Data is being fetched from the API |
 
 Clicking a badge opens the game’s page on GameStatus.info (or the site homepage if the game was not found).
 

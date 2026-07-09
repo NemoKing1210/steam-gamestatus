@@ -5,6 +5,15 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-07-09
+
+### Changed
+
+- Badge styling aligned with Steam `.app_tag` (flat `#384959` chips, `border-radius: 3px`, `box-shadow: 1px 1px 0 #000`)
+- Status colors use Steam palette (`#BEEE11`/`#4c6b22` for cracked, `#FFB321` bypass, `#67c1f5` accents)
+- Tooltips restyled as dark store popovers (`#3D4450`, `border-radius: 2px`, `box-shadow: 0 0 3px #000`)
+- Tooltip positioning defaults above the badge (Steam `tooltip.js` behavior)
+
 ## [1.1.0] - 2026-07-09
 
 ### Changed
@@ -46,6 +55,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI localization for 10 languages based on browser locale (fallback: English)
 - Tampermonkey / Violentmonkey / Greasemonkey-compatible metadata and auto-update URLs
 
-[1.1.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.1.0
+[1.1.1]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.1.1
 [1.1.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.1.0
 [1.0.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.0.0
