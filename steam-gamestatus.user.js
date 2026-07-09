@@ -1399,13 +1399,15 @@
 
       const card = findCardContainer(link);
       if (!card || card.closest('.apphub_AppName, .game_area_purchase, #game_highlights')) return;
-      if (card.querySelector(`.${BADGE_CLASS}:not(.${BADGE_CLASS}--loading)`)) return;
-      if (card.dataset.gsObserved === '1' && card.querySelector(`.${BADGE_CLASS}--loading`)) return;
+
+      const anchor = getBadgeAnchor(card);
+      if (anchor.querySelector(`.${BADGE_CLASS}:not(.${BADGE_CLASS}--loading)`)) return;
+      if (anchor.dataset.gsObserved === '1' && anchor.querySelector(`.${BADGE_CLASS}--loading`)) return;
 
       const cardLink = getCardLink(card);
       const title = getCardTitle(card, cardLink);
       const existing = cards.get(appId);
-      if (!existing || card.contains(existing.card)) {
+      if (!existing || shouldPreferCard(card, existing.card)) {
         cards.set(appId, { card, link: cardLink, title });
       }
     }
@@ -1425,23 +1427,83 @@
       return card.querySelector('a[href*="/app/"]');
     }
   
+    function findHomeContentGamelink(link) {
+      const homeRoot = link.closest('.home_content.single, .home_content_single_ctn');
+      if (!homeRoot) return null;
+      return homeRoot.querySelector('.home_content_items[data-ds-appid], .gamelink[data-ds-appid]');
+    }
+
+    function getBadgeAnchor(card) {
+      if (!card) return card;
+
+      const imageAnchor =
+        card.querySelector('.microtrailer_wrapper') ||
+        card.querySelector('.capsule_image_ctn') ||
+        card.querySelector('a.capsule_image_ctn');
+
+      if (imageAnchor) return imageAnchor;
+
+      const homeRoot = card.closest('.home_content.single, .home_content_single_ctn');
+      if (homeRoot) {
+        const gamelink = homeRoot.querySelector('.home_content_items[data-ds-appid], .gamelink[data-ds-appid]');
+        return (
+          gamelink?.querySelector('.microtrailer_wrapper') ||
+          gamelink?.querySelector('.capsule_image_ctn') ||
+          gamelink?.querySelector('a.capsule_image_ctn') ||
+          gamelink ||
+          card
+        );
+      }
+
+      return card;
+    }
+
+    function cleanupMisplacedHomeBadge(card) {
+      const homeRoot = card.closest('.home_content.single, .home_content_single_ctn');
+      if (!homeRoot) return;
+
+      homeRoot.querySelectorAll('.single_buttonbar .' + BADGE_CLASS).forEach((badge) => badge.remove());
+    }
+
+    function shouldPreferCard(candidate, current) {
+      if (!current) return true;
+      if (current.contains(candidate)) return false;
+      if (candidate.contains(current)) return true;
+
+      const candidateAnchor = getBadgeAnchor(candidate);
+      const currentAnchor = getBadgeAnchor(current);
+      const candidateHasImage = candidateAnchor !== candidate;
+      const currentHasImage = currentAnchor !== current;
+      return candidateHasImage && !currentHasImage;
+    }
+
     function findCardContainer(link) {
-      return (
-        link.closest(
-          [
-            '[data-ds-appid]',
-            '.sale_capsule',
-            '.tab_row_item',
-            '.search_result_row',
-            '.browse_item',
-            '.store_capsule',
-            '.capsule',
-            '.Panel',
-            'div[class*="Capsule"]',
-            'div[class*="Item"]',
-          ].join(', ')
-        ) || link.parentElement
+      const homeGamelink = findHomeContentGamelink(link);
+      if (homeGamelink) return homeGamelink;
+
+      const container = link.closest(
+        [
+          '[data-ds-appid]',
+          '.sale_capsule',
+          '.tab_row_item',
+          '.search_result_row',
+          '.browse_item',
+          '.store_capsule',
+          '.capsule',
+          '.home_content_items',
+          '.gamelink',
+          '.Panel',
+          'div[class*="Capsule"]',
+          'div[class*="Item"]',
+        ].join(', ')
       );
+
+      if (container?.classList.contains('single_buttonbar')) {
+        const gamelink = findHomeContentGamelink(link);
+        if (gamelink) return gamelink;
+      }
+
+      return container || link.parentElement;
     }
   
     function getCardLink(card) {
@@ -1462,7 +1524,8 @@
     }
 
     function enqueueHydration(card, appId, link, title) {
-      visibilityObserver.unobserve(card);
+      const anchor = getBadgeAnchor(card);
+      visibilityObserver.unobserve(anchor);
       hydrationQueue.push({ card, appId, link, title });
       if (!isScrolling) {
         flushHydrationQueue();
@@ -1504,12 +1567,15 @@
         entries.forEach((entry) => {
           if (!entry.isIntersecting) return;
 
-          const card = entry.target;
-          const appId = card.dataset.gsAppId;
+          const anchor = entry.target;
+          const appId = anchor.dataset.gsAppId;
           if (!appId) return;
 
+          const card =
+            anchor.closest('.home_content_items[data-ds-appid], .gamelink[data-ds-appid], [data-ds-appid]') ||
+            anchor;
           const link = resolveCardLink(card);
-          const title = card.dataset.gsTitle || '';
+          const title = anchor.dataset.gsTitle || '';
           enqueueHydration(card, appId, link, title);
         });
       },
@@ -1517,7 +1583,8 @@
     );
 
     async function hydrateCard(card, appId, link, title) {
-      const loader = card.querySelector(`.${BADGE_CLASS}--loading`);
+      const anchor = getBadgeAnchor(card);
+      const loader = anchor.querySelector(`.${BADGE_CLASS}--loading`);
       try {
         const entry = await loadGame(appId, link, title);
         const badge = renderBadge(entry, { isPage: false });
@@ -1540,18 +1607,21 @@
       requestAnimationFrame(() => {
         try {
           cards.forEach(({ card, link, title }, appId) => {
-            if (card.dataset.gsObserved === '1') return;
+            const anchor = getBadgeAnchor(card);
+            if (anchor.dataset.gsObserved === '1') return;
 
-            ensureRelativePosition(card);
+            cleanupMisplacedHomeBadge(card);
+            ensureRelativePosition(anchor);
+            anchor.dataset.gsObserved = '1';
+            anchor.dataset.gsAppId = appId;
+            anchor.dataset.gsTitle = title;
             card.dataset.gsObserved = '1';
-            card.dataset.gsAppId = appId;
-            card.dataset.gsTitle = title;
 
-            if (!card.querySelector(`.${BADGE_CLASS}`)) {
-              card.appendChild(createLoaderBadge(false));
+            if (!anchor.querySelector(`.${BADGE_CLASS}`)) {
+              anchor.appendChild(createLoaderBadge(false));
             }
 
-            visibilityObserver.observe(card);
+            visibilityObserver.observe(anchor);
           });
         } finally {
           resumeMutationObserver();
