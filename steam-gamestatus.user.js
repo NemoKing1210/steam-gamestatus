@@ -45,6 +45,7 @@
   
     const API_BASE = 'https://gamestatus.info/back/api/gameinfo/game';
     const SITE_BASE = 'https://gamestatus.info';
+    const DONATE_URL = `${SITE_BASE}/#donate`;
     const CACHE_KEY = 'gs_steam_cache_v3';
     const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
     const NEGATIVE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -82,6 +83,7 @@
         subscriptions: 'Subscriptions',
         hardware: 'Hardware',
         torrent: 'Torrent',
+        supportProject: 'Support project',
         loadError: 'Load error',
         loading: 'GameStatus…',
       },
@@ -106,6 +108,7 @@
         subscriptions: 'Подписки',
         hardware: 'Железо',
         torrent: 'Торрент',
+        supportProject: 'Поддержать проект',
         loadError: 'Ошибка загрузки',
         loading: 'GameStatus…',
       },
@@ -130,6 +133,7 @@
         subscriptions: '订阅数',
         hardware: '硬件',
         torrent: '种子',
+        supportProject: '支持项目',
         loadError: '加载失败',
         loading: 'GameStatus…',
       },
@@ -154,6 +158,7 @@
         subscriptions: 'Suscripciones',
         hardware: 'Hardware',
         torrent: 'Torrent',
+        supportProject: 'Apoyar el proyecto',
         loadError: 'Error de carga',
         loading: 'GameStatus…',
       },
@@ -178,6 +183,7 @@
         subscriptions: 'Inscrições',
         hardware: 'Hardware',
         torrent: 'Torrent',
+        supportProject: 'Apoiar o projeto',
         loadError: 'Erro ao carregar',
         loading: 'GameStatus…',
       },
@@ -202,6 +208,7 @@
         subscriptions: 'Abonnements',
         hardware: 'Hardware',
         torrent: 'Torrent',
+        supportProject: 'Projekt unterstützen',
         loadError: 'Ladefehler',
         loading: 'GameStatus…',
       },
@@ -226,6 +233,7 @@
         subscriptions: 'Abonnements',
         hardware: 'Configuration',
         torrent: 'Torrent',
+        supportProject: 'Soutenir le projet',
         loadError: 'Erreur de chargement',
         loading: 'GameStatus…',
       },
@@ -250,6 +258,7 @@
         subscriptions: '購読数',
         hardware: 'スペック',
         torrent: 'トレント',
+        supportProject: 'プロジェクトを支援',
         loadError: '読み込みエラー',
         loading: 'GameStatus…',
       },
@@ -274,6 +283,7 @@
         subscriptions: '구독 수',
         hardware: '사양',
         torrent: '토렌트',
+        supportProject: '프로젝트 후원',
         loadError: '로드 오류',
         loading: 'GameStatus…',
       },
@@ -298,6 +308,7 @@
         subscriptions: 'Subskrypcje',
         hardware: 'Sprzęt',
         torrent: 'Torrent',
+        supportProject: 'Wspieraj projekt',
         loadError: 'Błąd ładowania',
         loading: 'GameStatus…',
       },
@@ -645,6 +656,69 @@
         border-top: 1px solid rgba(255, 255, 255, 0.1);
         font-size: 11px;
         color: #8f98a0;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-torrent-btn {
+        display: inline-block;
+        padding: 1px;
+        border-radius: 2px;
+        border: none;
+        background: linear-gradient(-60deg, #4c6b22 5%, #6ba32d 95%);
+        color: #ffffff !important;
+        text-decoration: none !important;
+        cursor: pointer;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-torrent-btn > span {
+        display: block;
+        padding: 0 15px;
+        font: normal 13px/28px "Motiva Sans", Arial, sans-serif;
+        color: #ffffff !important;
+        background: transparent;
+        border-radius: 2px;
+        text-align: center;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-torrent-btn:hover {
+        background: linear-gradient(-60deg, #5a7f28 5%, #7bb832 95%);
+        color: #ffffff !important;
+        text-decoration: none !important;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-donate-btn {
+        display: inline-block;
+        padding: 1px;
+        border-radius: 2px;
+        border: none;
+        background: linear-gradient(-60deg, #417a9b 5%, #67c1f5 95%);
+        color: #ffffff !important;
+        text-decoration: none !important;
+        cursor: pointer;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-donate-btn > span {
+        display: block;
+        padding: 0 15px;
+        font: normal 13px/28px "Motiva Sans", Arial, sans-serif;
+        color: #ffffff !important;
+        background: transparent;
+        border-radius: 2px;
+        text-align: center;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-donate-btn:hover {
+        background: linear-gradient(-60deg, #4f8eb0 5%, #7ad0ff 95%);
+        color: #ffffff !important;
+        text-decoration: none !important;
       }
 
       @keyframes gs-spin {
@@ -1047,6 +1121,17 @@
         </div>
       `;
     }
+
+    function formatTooltipActions(torrentLink = null) {
+      const buttons = [
+        torrentLink
+          ? `<a class="gs-tip-torrent-btn" href="${escapeAttr(torrentLink)}" target="_blank" rel="noopener noreferrer"><span>${escapeHtml(t('torrent'))}</span></a>`
+          : '',
+        `<a class="gs-tip-donate-btn" href="${escapeAttr(DONATE_URL)}" target="_blank" rel="noopener noreferrer"><span>${escapeHtml(t('supportProject'))}</span></a>`,
+      ].filter(Boolean);
+
+      return `<div class="gs-tip-actions">${buttons.join('')}</div>`;
+    }
   
     function formatTooltip(entry) {
       const game = entry?.data || null;
@@ -1067,7 +1152,7 @@
             </div>`
           : '';
   
-        return `<strong>GameStatus</strong><p class="gs-tip-muted">${escapeHtml(t('gameNotFound'))}</p>${links}`;
+        return `<strong>GameStatus</strong><p class="gs-tip-muted">${escapeHtml(t('gameNotFound'))}</p>${links}${formatTooltipActions()}`;
       }
   
       const rows = [
@@ -1108,18 +1193,18 @@
           ? `<a href="${escapeAttr(apiUrl)}" target="_blank" rel="noopener noreferrer">API</a>`
           : '',
         `<a href="${escapeAttr(pageUrl)}" target="_blank" rel="noopener noreferrer">GameStatus</a>`,
-        game.torrent_link
-          ? `<a href="${escapeAttr(game.torrent_link)}" target="_blank" rel="noopener noreferrer">${escapeHtml(t('torrent'))}</a>`
-          : '',
       ]
         .filter(Boolean)
         .join(' · ');
-  
+
+      const torrentButton = formatTooltipActions(game.torrent_link || null);
+
       return `
         <strong>${escapeHtml(game.title || 'GameStatus')}</strong>
         <div class="gs-tip-section">${rows}</div>
         ${specsBlock}
         ${descriptionBlock}
+        ${torrentButton}
         <div class="gs-tip-footer">${footerLinks}</div>
       `;
     }
