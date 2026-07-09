@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.1] - 2026-07-09
+
+### Fixed
+
+- Featured carousel (`carousel_wide_mode`): badges no longer show the wrong game or stack on top of each other — slides share the same screen coordinates, so only the `.focus` slide displays a badge
+- Carousel badge anchor moved to `.capsule_image_ctn` instead of the full capsule link
+- Stale carousel badges reset when `data-ds-appid` changes or focus moves to another slide
+
 ## [1.2.0] - 2026-07-09
 
 ### Added
@@ -76,6 +84,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI localization for 10 languages based on browser locale (fallback: English)
 - Tampermonkey / Violentmonkey / Greasemonkey-compatible metadata and auto-update URLs
 
+[1.2.1]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.2.1
 [1.2.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.2.0
 [1.1.1]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.1.1
 [1.1.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.1.0

@@ -10,7 +10,7 @@
 // @name:ko           Steam GameStatus — 크랙 상태
 // @name:pl           Steam GameStatus — status cracka
 // @namespace         https://github.com/NemoKing1210/steam-gamestatus
-// @version           1.2.0
+// @version           1.2.1
 // @description       Shows game crack status from gamestatus.info on Steam store cards and game pages
 // @description:ru    Показывает статус взлома игр с gamestatus.info на карточках Steam и страницах игр
 // @description:zh-CN 在 Steam 商店卡片和游戏页面显示来自 gamestatus.info 的破解状态
@@ -367,7 +367,12 @@
     /** @type {Array<{ card: Element, appId: string, link: HTMLAnchorElement|{ href: string }, title: string }>} */
     const hydrationQueue = [];
 
-    const MUTATION_OBSERVER_OPTIONS = { childList: true, subtree: true };
+    const MUTATION_OBSERVER_OPTIONS = {
+      childList: true,
+      subtree: true,
+      attributes: true,
+      attributeFilter: ['data-ds-appid', 'data-sub-id', 'class'],
+    };
   
     GM_addStyle(`
       .${BADGE_CLASS} {
@@ -484,6 +489,16 @@
         font-size: 10px;
         line-height: 16px;
         padding: 0 6px;
+      }
+
+      /* Featured carousel: slides share the same coordinates — show badge only on focus */
+      .carousel_wide_mode .store_main_capsule:not(.focus) .${BADGE_CLASS} {
+        display: none !important;
+        pointer-events: none !important;
+      }
+
+      .carousel_wide_mode .store_main_capsule.focus .${BADGE_CLASS} {
+        z-index: 20;
       }
 
       [class*="StoreSalePriceWidgetContainer"] > .${BADGE_CLASS}--chart {
@@ -1359,7 +1374,7 @@
     }
 
     function renderBadge(entry, options = {}) {
-      const { isPage = false, isChart = false } = options;
+      const { isPage = false, isChart = false, appId = null } = options;
       const game = entry?.data || null;
       const type = getStatusType(game);
       const label = getStatusLabel(game, type);
@@ -1373,6 +1388,7 @@
       badge.target = '_blank';
       badge.rel = 'noopener noreferrer';
       badge.setAttribute('data-gs-processed', '1');
+      badge.dataset.gsAppId = String(appId || game?.steam_prod_id || '');
 
       if (isPage) {
         badge.innerHTML = `<span><span class="${BADGE_CLASS}__dot"></span><span class="${BADGE_CLASS}__label">${escapeHtml(label)}</span></span>`;
@@ -1417,15 +1433,78 @@
       return Boolean(el.querySelector?.('a[href*="/app/"]'));
     }
 
-    function collectRelevantAddedNodes(mutations) {
+    function isFeaturedWideCarouselCard(card) {
+      return (
+        card?.classList?.contains('store_main_capsule') &&
+        Boolean(card.closest('.carousel_wide_mode'))
+      );
+    }
+
+    function isCarouselBadgeVisible(card) {
+      if (!isFeaturedWideCarouselCard(card)) return true;
+      return card.classList.contains('focus');
+    }
+
+    function verifyBadgeAppId(card, anchor) {
+      const expectedAppId = getCardAppId(card);
+      if (!expectedAppId || !anchor) return false;
+
+      const badge = anchor.querySelector(`.${BADGE_CLASS}:not(.${BADGE_CLASS}--loading)`);
+      if (!badge) return false;
+
+      if (badge.dataset.gsAppId && badge.dataset.gsAppId !== expectedAppId) {
+        badge.remove();
+        resetBadgeAnchor(anchor);
+        if (card !== anchor && card.dataset.gsObserved === '1') {
+          delete card.dataset.gsObserved;
+          delete card.dataset.gsAppId;
+          delete card.dataset.gsTitle;
+        }
+        return true;
+      }
+
+      return false;
+    }
+
+    function collectRelevantMutations(mutations) {
       const nodes = [];
+      let needsRescan = false;
+
       for (const mutation of mutations) {
+        if (mutation.type === 'attributes') {
+          const target = mutation.target;
+          if (!(target instanceof Element)) continue;
+
+          if (mutation.attributeName === 'class' && isFeaturedWideCarouselCard(target)) {
+            if (target.classList.contains('focus')) {
+              const anchor = getBadgeAnchor(target);
+              if (verifyBadgeAppId(target, anchor)) {
+                needsRescan = true;
+              }
+              nodes.push(target);
+            }
+            continue;
+          }
+
+          if (!target.hasAttribute('data-ds-appid')) continue;
+          if (resetStaleCapsuleBadge(target)) {
+            needsRescan = true;
+          }
+          nodes.push(target);
+          continue;
+        }
+
         for (const node of mutation.addedNodes) {
           if (isRelevantAddedNode(node)) {
             nodes.push(/** @type {Element} */ (node));
           }
         }
       }
+
+      if (needsRescan && !nodes.length) {
+        nodes.push(document.body);
+      }
+
       return nodes;
     }
 
@@ -1494,6 +1573,7 @@
 
       const card = findCardContainer(link);
       if (!card || card.closest('.apphub_AppName, .game_area_purchase, #game_highlights')) return;
+      if (!isCarouselBadgeVisible(card)) return;
 
       const cardAppId = getCardAppId(card);
       if (cardAppId && cardAppId !== appId) return;
@@ -1569,32 +1649,35 @@
       return gamelink;
     }
 
+    function getCapsuleImageAnchor(card) {
+      if (!card) return null;
+
+      return (
+        card.querySelector('.microtrailer_wrapper') ||
+        card.querySelector('.capsule.capsule_image_ctn.main_capsule') ||
+        card.querySelector('.capsule_image_ctn.main_capsule') ||
+        card.querySelector('.capsule.capsule_image_ctn') ||
+        card.querySelector('.capsule_image_ctn') ||
+        card.querySelector('a.capsule_image_ctn')
+      );
+    }
+
     function getBadgeAnchor(card) {
       if (!card) return card;
-
-      if (isDsAppCapsule(card)) {
-        return card;
-      }
 
       if (isChartTableRow(card)) {
         const priceAnchor = getChartPriceAnchor(card);
         if (priceAnchor) return priceAnchor;
       }
 
-      const imageAnchor =
-        card.querySelector('.microtrailer_wrapper') ||
-        card.querySelector('.capsule_image_ctn') ||
-        card.querySelector('a.capsule_image_ctn');
-
+      const imageAnchor = getCapsuleImageAnchor(card);
       if (imageAnchor) return imageAnchor;
 
       const homeRoot = card.closest('.home_content.single, .home_content_single_ctn');
       if (homeRoot) {
         const gamelink = homeRoot.querySelector('.home_content_items[data-ds-appid], .gamelink[data-ds-appid]');
         return (
-          gamelink?.querySelector('.microtrailer_wrapper') ||
-          gamelink?.querySelector('.capsule_image_ctn') ||
-          gamelink?.querySelector('a.capsule_image_ctn') ||
+          getCapsuleImageAnchor(gamelink) ||
           gamelink ||
           card
         );
@@ -1613,15 +1696,42 @@
     function cleanupMisplacedGroupBadge(card, anchor) {
       if (!card || !hasMultipleGames(card)) return;
 
-      card.querySelectorAll('.' + BADGE_CLASS).forEach((badge) => {
-        if (!anchor.contains(badge)) badge.remove();
-      });
+      cleanupMisplacedCapsuleBadges(card, anchor);
 
       if (card.dataset.gsObserved === '1' && card !== anchor) {
         delete card.dataset.gsObserved;
         delete card.dataset.gsAppId;
         delete card.dataset.gsTitle;
       }
+    }
+
+    function cleanupMisplacedCapsuleBadges(card, anchor) {
+      if (!card || !anchor) return;
+
+      card.querySelectorAll('.' + BADGE_CLASS).forEach((badge) => {
+        if (!anchor.contains(badge)) badge.remove();
+      });
+
+      const anchorBadges = [...anchor.querySelectorAll('.' + BADGE_CLASS)];
+      anchorBadges.slice(1).forEach((badge) => badge.remove());
+    }
+
+    function resetStaleCapsuleBadge(card) {
+      if (!card?.hasAttribute?.('data-ds-appid')) return false;
+
+      const appId = getCardAppId(card);
+      if (!appId) return false;
+
+      const anchor = getBadgeAnchor(card);
+      if (anchor.dataset.gsObserved !== '1' || anchor.dataset.gsAppId === appId) return false;
+
+      resetBadgeAnchor(anchor);
+      if (card !== anchor && card.dataset.gsObserved === '1') {
+        delete card.dataset.gsObserved;
+        delete card.dataset.gsAppId;
+        delete card.dataset.gsTitle;
+      }
+      return true;
     }
 
     function shouldPreferCard(candidate, current) {
@@ -1772,6 +1882,8 @@
             anchor.closest('tr') ||
             anchor.closest('.home_content_items[data-ds-appid], .gamelink[data-ds-appid], [data-ds-appid]') ||
             anchor;
+          if (!isCarouselBadgeVisible(card)) return;
+
           const appId = resolveCardAppId(card, anchor.dataset.gsAppId);
           if (!appId) return;
 
@@ -1798,16 +1910,40 @@
       const resolvedLink = getCardLink(card) || link;
       const resolvedTitle = title || getCardTitle(card, resolvedLink);
       const loader = anchor.querySelector(`.${BADGE_CLASS}--loading`);
+
+      if (anchor.dataset.gsAppId && anchor.dataset.gsAppId !== resolvedAppId) {
+        loader?.remove();
+        return;
+      }
+
       try {
         const entry = await loadGame(resolvedAppId, resolvedLink, resolvedTitle);
-        const badge = renderBadge(entry, { isChart });
+        if (anchor.dataset.gsAppId && anchor.dataset.gsAppId !== resolvedAppId) {
+          loader?.remove();
+          return;
+        }
+
+        const badge = renderBadge(entry, { isChart, appId: resolvedAppId });
         requestAnimationFrame(() => {
+          if (anchor.dataset.gsAppId && anchor.dataset.gsAppId !== resolvedAppId) {
+            loader?.remove();
+            return;
+          }
           loader?.replaceWith(badge);
         });
       } catch {
-        const badge = renderBadge({ data: null, missing: true, triedUrls: [] }, { isChart });
+        if (anchor.dataset.gsAppId && anchor.dataset.gsAppId !== resolvedAppId) {
+          loader?.remove();
+          return;
+        }
+
+        const badge = renderBadge({ data: null, missing: true, triedUrls: [] }, { isChart, appId: resolvedAppId });
         badge.querySelector(`.${BADGE_CLASS}__label`).textContent = t('loadError');
         requestAnimationFrame(() => {
+          if (anchor.dataset.gsAppId && anchor.dataset.gsAppId !== resolvedAppId) {
+            loader?.remove();
+            return;
+          }
           loader?.replaceWith(badge);
         });
       }
@@ -1822,16 +1958,20 @@
           cards.forEach(({ card, link, title }, appId) => {
             const resolvedAppId = resolveCardAppId(card, appId);
             if (getCardAppId(card) && String(appId) !== resolvedAppId) return;
+            if (!isCarouselBadgeVisible(card)) return;
 
             const anchor = getBadgeAnchor(card);
             const isChart = isChartTableRow(card);
-            if (anchor.dataset.gsObserved === '1') {
+            if (verifyBadgeAppId(card, anchor)) {
+              // stale badge removed — continue to re-observe
+            } else if (anchor.dataset.gsObserved === '1') {
               if (anchor.dataset.gsAppId === resolvedAppId) return;
               resetBadgeAnchor(anchor);
             }
 
             cleanupMisplacedHomeBadge(card);
             cleanupMisplacedGroupBadge(card, anchor);
+            cleanupMisplacedCapsuleBadges(card, anchor);
             if (!isChart) {
               ensureRelativePosition(anchor);
             }
@@ -1928,7 +2068,7 @@
       scheduleScan();
 
       mutationObserver = new MutationObserver((mutations) => {
-        const nodes = collectRelevantAddedNodes(mutations);
+        const nodes = collectRelevantMutations(mutations);
         if (!nodes.length) return;
         pendingScanNodes.push(...nodes);
         scheduleScan();
