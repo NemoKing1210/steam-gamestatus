@@ -57,11 +57,11 @@ Managers compare the installed `@version` with the remote metadata to decide whe
 - **Settings panel** — header button to set badge position, cache duration, clear cache, and whether to show “not in database” badges
 - **Status badges on game cards** — store home, search results, wishlists, sale pages, and other listings with `/app/{id}` links
 - **Status badge on game pages** — compact status chip in `.apphub_OtherSiteInfo` next to Community Hub / Store Page links
-- **Rich tooltips** — hover a badge to see protection, release dates, scores, hardware requirements, and more
+- **Rich tooltips** — Steam-like popovers with cover art, status chips, colored scores, and hardware details
 - **Color-coded statuses** — quick visual scan across a long list of games
 - **Lazy loading** — badges load only when cards scroll into view
 - **Smart caching** — responses are cached locally to reduce API load and speed up repeat visits
-- **Steam-like UI** — badges styled like Steam `.app_tag`, tooltips like dark store popovers (`#3D4450`)
+- **Steam-like UI** — badges styled like Steam `.app_tag`, tooltips like store hover popovers
 - **10 UI languages** — English, Russian, Chinese, Spanish, Portuguese, German, French, Japanese, Korean, Polish (detected from browser locale)
 
 ## Supported pages
@@ -89,23 +89,16 @@ Clicking a badge opens the game’s page on GameStatus.info (or the site homepag
 
 ## Tooltip contents
 
-When you hover over a badge, a tooltip may show:
+Hovering a badge opens a Steam-like popover that may show:
 
-- **Status** — human-readable status from GameStatus.info
-- **Protection** — DRM / anti-tamper (e.g. Denuvo, VMProtect)
-- **Group** — related group name (when available)
-- **Release** — official release date
-- **Updated** — status update date (when available)
-- **Steam ID** — Steam application ID
-- **Score** — user rating on GameStatus.info
-- **Metacritic** — Metacritic score (if available)
-- **Type** — AAA flag
-- **Subscriptions** — subscriber count
-- **Hardware** — minimum/recommended CPU, RAM, GPU, OS
+- **Header** — cover image, title, status chip, AAA / protection / group chips
+- **Dates** — release and status update dates, Steam ID, subscriptions
+- **Scores** — GameStatus and Metacritic values with Metacritic-style colors (green ≥75, yellow ≥50, red below)
+- **Hardware** — CPU, RAM, GPU, OS when available
 - **Description** — short game description
-- **Links** — API endpoint and GameStatus page
+- **Footer** — support button plus API / GameStatus links
 
-If a game is not in the database, the tooltip lists the API URLs that were tried during lookup.
+If a game is not in the database, the popover shows a “not in database” chip and lists the API URLs tried during lookup.
 
 ## How it works
 

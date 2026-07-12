@@ -981,19 +981,23 @@
       .${BADGE_CLASS}__tooltip {
         position: fixed;
         z-index: 999999;
-        max-width: 340px;
-        padding: 8px 12px;
-        border-radius: 2px;
-        border: none;
-        background: #3d4450;
-        color: #dcdedf;
-        font: normal 11px/1.45 "Motiva Sans", Arial, sans-serif;
-        box-shadow: 0 0 3px #000000;
+        width: min(380px, calc(100vw - 24px));
+        max-width: 380px;
+        padding: 0;
+        border-radius: 3px;
+        border: 1px solid #000;
+        background: linear-gradient(180deg, #1b2838 0%, #16202d 100%);
+        color: #c7d5e0;
+        font: normal 12px/1.45 "Motiva Sans", Arial, Helvetica, sans-serif;
+        box-shadow:
+          0 0 12px rgba(0, 0, 0, 0.7),
+          inset 0 1px 0 rgba(255, 255, 255, 0.04);
         pointer-events: none;
         opacity: 0;
         transition: opacity 0.15s ease;
         word-wrap: break-word;
         white-space: normal;
+        overflow: hidden;
       }
 
       .${BADGE_CLASS}__tooltip--visible {
@@ -1004,31 +1008,137 @@
         pointer-events: auto;
       }
 
-      .${BADGE_CLASS}__tooltip strong {
-        display: block;
-        margin-bottom: 6px;
+      .${BADGE_CLASS}__tooltip .gs-tip-header {
+        display: flex;
+        gap: 12px;
+        padding: 12px 12px 10px;
+        background:
+          radial-gradient(120% 90% at 0% 0%, rgba(102, 192, 244, 0.16), transparent 55%),
+          linear-gradient(90deg, #1a2332, #1b2838);
+        border-bottom: 1px solid #000;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-cover {
+        flex: 0 0 92px;
+        width: 92px;
+        height: 43px;
+        border-radius: 2px;
+        object-fit: cover;
+        background: #0e1620;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.55);
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-header-body {
+        min-width: 0;
+        flex: 1 1 auto;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-title {
+        margin: 0 0 8px;
         color: #ffffff;
-        font-size: 13px;
-        font-weight: normal;
-        line-height: 1.3;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.25;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-chip {
+        display: inline-flex;
+        align-items: center;
+        max-width: 100%;
+        padding: 0 7px;
+        border-radius: 2px;
+        border: none;
+        background: #384959;
+        color: #c7d5e0;
+        font: 500 11px/18px "Motiva Sans", Arial, sans-serif;
+        box-shadow: 1px 1px 0 0 #000;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-chip--cracked {
+        background: #4c6b22;
+        color: #beee11;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-chip--bypass,
+      .${BADGE_CLASS}__tooltip .gs-tip-chip--not-cracked-recent {
+        background: #5a4630;
+        color: #ffb321;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-chip--not-cracked-old {
+        background: #5a3030;
+        color: #fecaca;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-chip--release-today {
+        background: #2a4a63;
+        color: #67c1f5;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-chip--unknown,
+      .${BADGE_CLASS}__tooltip .gs-tip-chip--missing {
+        background: #3a4149;
+        color: #b0aeac;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-chip--aaa {
+        background: linear-gradient(to bottom, #66c0f4 5%, #417a9b 95%);
+        color: #fff;
+        font-weight: 700;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-chip--protection {
+        background: #2a3644;
+        color: #acb2b8;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-body {
+        padding: 10px 12px 12px;
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-muted {
-        margin: 0 0 6px;
+        margin: 0 0 8px;
         color: #8f98a0;
+        font-size: 12px;
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-section {
-        margin-top: 8px;
-        padding-top: 8px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-section:first-child {
+        margin-top: 0;
+        padding-top: 0;
+        border-top: none;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-section-title {
+        margin: 0 0 6px;
+        color: #8f98a0;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-row {
         display: grid;
-        grid-template-columns: 88px 1fr;
-        gap: 6px;
-        margin-bottom: 4px;
+        grid-template-columns: 92px 1fr;
+        gap: 8px;
+        align-items: start;
+        margin-bottom: 5px;
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-row:last-child {
@@ -1039,24 +1149,109 @@
         color: #8f98a0;
         font-size: 11px;
         font-weight: normal;
+        line-height: 18px;
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-value {
         color: #dcdedf;
         word-break: break-word;
+        line-height: 18px;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-scores {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-score {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-width: 64px;
+        padding: 6px 10px;
+        border-radius: 2px;
+        border: 1px solid #000;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+        text-align: center;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-score__value {
+        font-size: 18px;
+        font-weight: 700;
+        line-height: 1.1;
+        text-shadow: 0 1px 1px rgba(0, 0, 0, 0.35);
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-score__label {
+        margin-top: 2px;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+        opacity: 0.85;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-score--high {
+        background: linear-gradient(180deg, #4c6b22 0%, #3a5219 100%);
+        color: #beee11;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-score--mid {
+        background: linear-gradient(180deg, #8a6d1a 0%, #6a5214 100%);
+        color: #ffcc33;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-score--low {
+        background: linear-gradient(180deg, #8a3030 0%, #6a2020 100%);
+        color: #ff8a8a;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-score--unknown {
+        background: linear-gradient(180deg, #384959 0%, #2c3845 100%);
+        color: #c7d5e0;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-specs {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-spec {
+        display: grid;
+        grid-template-columns: 36px 1fr;
+        gap: 8px;
+        align-items: start;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-spec__key {
+        color: #66c0f4;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        line-height: 16px;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-spec__val {
+        color: #acb2b8;
+        font-size: 11px;
+        line-height: 16px;
+        word-break: break-word;
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-desc {
         margin: 0;
-        color: #b8bcbf;
+        color: #acb2b8;
         font-size: 11px;
         line-height: 1.45;
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-links {
         margin: 4px 0 0;
-        padding: 0 0 0 15px;
-        list-style: disc;
+        padding: 0;
+        list-style: none;
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-links li + li {
@@ -1073,24 +1268,31 @@
       .${BADGE_CLASS}__tooltip .gs-tip-links a:hover,
       .${BADGE_CLASS}__tooltip .gs-tip-footer a:hover {
         color: #ffffff;
-        text-decoration: underline;
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-footer {
-        margin-top: 8px;
-        padding-top: 8px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+        padding: 10px 12px;
+        border-top: 1px solid #000;
+        background: rgba(0, 0, 0, 0.22);
         font-size: 11px;
         color: #8f98a0;
       }
 
-      .${BADGE_CLASS}__tooltip .gs-tip-actions {
+      .${BADGE_CLASS}__tooltip .gs-tip-footer-links {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 8px;
-        padding-top: 8px;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        gap: 6px;
+        align-items: center;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-footer-sep {
+        color: #4b5561;
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-donate-btn {
@@ -1102,12 +1304,13 @@
         color: #ffffff !important;
         text-decoration: none !important;
         cursor: pointer;
+        box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-donate-btn > span {
         display: block;
-        padding: 0 15px;
-        font: normal 13px/28px "Motiva Sans", Arial, sans-serif;
+        padding: 0 12px;
+        font: normal 12px/26px "Motiva Sans", Arial, sans-serif;
         color: #ffffff !important;
         background: transparent;
         border-radius: 2px;
@@ -1924,28 +2127,111 @@
       return t('unknownStatus');
     }
   
-    function tooltipRow(label, value) {
-      if (!value) return '';
+    function tooltipRow(label, valueHtml) {
+      if (!valueHtml) return '';
       return `
         <div class="gs-tip-row">
           <span class="gs-tip-label">${escapeHtml(label)}</span>
-          <span class="gs-tip-value">${escapeHtml(value)}</span>
+          <span class="gs-tip-value">${valueHtml}</span>
         </div>
       `;
     }
 
-    function formatTooltipActions() {
-      return `<div class="gs-tip-actions"><a class="gs-tip-donate-btn" href="${escapeAttr(DONATE_URL)}" target="_blank" rel="noopener noreferrer"><span>${escapeHtml(t('supportProject'))}</span></a></div>`;
+    function tipChip(text, variant = '') {
+      if (!text) return '';
+      const mod = variant ? ` gs-tip-chip--${variant}` : '';
+      return `<span class="gs-tip-chip${mod}">${escapeHtml(text)}</span>`;
     }
-  
+
+    function splitChipValues(value) {
+      return String(value || '')
+        .split(/[,;/|]+/)
+        .map((part) => part.trim())
+        .filter(Boolean);
+    }
+
+    function normalizeScorePercent(value) {
+      const number = Number(value);
+      if (!Number.isFinite(number)) return null;
+      if (number <= 10) return number * 10;
+      return Math.max(0, Math.min(100, number));
+    }
+
+    function getScoreTone(value) {
+      const percent = normalizeScorePercent(value);
+      if (percent === null) return 'unknown';
+      if (percent >= 75) return 'high';
+      if (percent >= 50) return 'mid';
+      return 'low';
+    }
+
+    function formatScoreBadge(label, value) {
+      const text = formatScore(value);
+      if (!text) return '';
+      const tone = getScoreTone(value);
+      return `
+        <div class="gs-tip-score gs-tip-score--${tone}">
+          <span class="gs-tip-score__value">${escapeHtml(text)}</span>
+          <span class="gs-tip-score__label">${escapeHtml(label)}</span>
+        </div>
+      `;
+    }
+
+    function formatTooltipFooter(entry, game) {
+      const pageUrl = game?.slug ? `${SITE_BASE}/${game.slug}` : SITE_BASE;
+      const apiUrl = entry?.apiUrl || (game?.slug ? buildApiUrl(game.slug) : null);
+      const links = [
+        apiUrl
+          ? `<a href="${escapeAttr(apiUrl)}" target="_blank" rel="noopener noreferrer">API</a>`
+          : '',
+        `<a href="${escapeAttr(pageUrl)}" target="_blank" rel="noopener noreferrer">GameStatus</a>`,
+      ].filter(Boolean);
+
+      return `
+        <div class="gs-tip-footer">
+          <a class="gs-tip-donate-btn" href="${escapeAttr(DONATE_URL)}" target="_blank" rel="noopener noreferrer"><span>${escapeHtml(t('supportProject'))}</span></a>
+          <div class="gs-tip-footer-links">${links.join('<span class="gs-tip-footer-sep">·</span>')}</div>
+        </div>
+      `;
+    }
+
+    function formatHardwareSection(specs) {
+      if (!specs || typeof specs !== 'object') return '';
+      const rows = [
+        ['CPU', specs.cpu_info],
+        ['RAM', specs.ram_info],
+        ['GPU', specs.gpu_info],
+        ['OS', specs.os_info],
+      ].filter(([, value]) => value);
+
+      if (!rows.length) return '';
+
+      return `
+        <div class="gs-tip-section">
+          <div class="gs-tip-section-title">${escapeHtml(t('hardware'))}</div>
+          <div class="gs-tip-specs">
+            ${rows
+              .map(
+                ([key, value]) => `
+              <div class="gs-tip-spec">
+                <span class="gs-tip-spec__key">${escapeHtml(key)}</span>
+                <span class="gs-tip-spec__val">${escapeHtml(value)}</span>
+              </div>`
+              )
+              .join('')}
+          </div>
+        </div>
+      `;
+    }
+
     function formatTooltip(entry) {
       const game = entry?.data || null;
-  
+
       if (!game) {
         const urls = getTriedUrls(entry);
         const links = urls.length
           ? `<div class="gs-tip-section">
-              <span class="gs-tip-label">${escapeHtml(t('checkedUrls'))}</span>
+              <div class="gs-tip-section-title">${escapeHtml(t('checkedUrls'))}</div>
               <ul class="gs-tip-links">
                 ${urls
                   .map(
@@ -1956,59 +2242,76 @@
               </ul>
             </div>`
           : '';
-  
-        return `<strong>GameStatus</strong><p class="gs-tip-muted">${escapeHtml(t('gameNotFound'))}</p>${links}${formatTooltipActions()}`;
+
+        return `
+          <div class="gs-tip-header">
+            <div class="gs-tip-header-body">
+              <div class="gs-tip-title">GameStatus</div>
+              <div class="gs-tip-chips">${tipChip(t('notInDatabase'), 'missing')}</div>
+            </div>
+          </div>
+          <div class="gs-tip-body">
+            <p class="gs-tip-muted">${escapeHtml(t('gameNotFound'))}</p>
+            ${links}
+          </div>
+          ${formatTooltipFooter(entry, null)}
+        `;
       }
-  
-      const rows = [
-        tooltipRow(t('status'), game.readable_status),
-        tooltipRow(t('protection'), game.protections),
-        tooltipRow(t('group'), getLocalizedGroup(game)),
-        tooltipRow(t('release'), formatDate(game.release_date)),
-        tooltipRow(t('crack'), formatDate(game.crack_date)),
-        tooltipRow(t('steamId'), game.steam_prod_id),
-        tooltipRow(t('score'), formatScore(game.user_score)),
-        tooltipRow(t('metacritic'), formatScore(game.mata_score)),
-        tooltipRow(t('type'), game.is_AAA ? 'AAA' : null),
-        tooltipRow(t('subscriptions'), game.count_subscribe),
-      ].join('');
-  
-      const specs = game.specs_info;
-      const specLines = specs
-        ? [
-            specs.cpu_info && `CPU: ${specs.cpu_info}`,
-            specs.ram_info && `RAM: ${specs.ram_info}`,
-            specs.gpu_info && `GPU: ${specs.gpu_info}`,
-            specs.os_info && `OS: ${specs.os_info}`,
-          ].filter(Boolean)
-        : [];
-      const specsBlock = specLines.length
-        ? `<div class="gs-tip-section">${tooltipRow(t('hardware'), specLines.join(' · '))}</div>`
+
+      const statusType = getStatusType(game);
+      const statusLabel = getStatusLabel(game, statusType);
+      const protectionChips = splitChipValues(game.protections)
+        .map((item) => tipChip(item, 'protection'))
+        .join('');
+      const group = getLocalizedGroup(game);
+      const headerChips = [
+        tipChip(statusLabel, statusType),
+        game.is_AAA ? tipChip('AAA', 'aaa') : '',
+        protectionChips,
+        group ? tipChip(group) : '',
+      ]
+        .filter(Boolean)
+        .join('');
+
+      const cover = game.short_image
+        ? `<img class="gs-tip-cover" src="${escapeAttr(game.short_image)}" alt="" loading="lazy" referrerpolicy="no-referrer" />`
         : '';
-  
-      const description = truncateText(getLocalizedDescription(game));
+
+      const infoRows = [
+        tooltipRow(t('release'), formatDate(game.release_date) ? escapeHtml(formatDate(game.release_date)) : ''),
+        tooltipRow(t('crack'), formatDate(game.crack_date) ? escapeHtml(formatDate(game.crack_date)) : ''),
+        tooltipRow(t('steamId'), game.steam_prod_id ? escapeHtml(String(game.steam_prod_id)) : ''),
+        tooltipRow(
+          t('subscriptions'),
+          game.count_subscribe > 0 ? escapeHtml(String(game.count_subscribe)) : ''
+        ),
+      ].join('');
+
+      const scores = [formatScoreBadge(t('score'), game.user_score), formatScoreBadge(t('metacritic'), game.mata_score)]
+        .filter(Boolean)
+        .join('');
+      const scoresBlock = scores ? `<div class="gs-tip-section"><div class="gs-tip-scores">${scores}</div></div>` : '';
+
+      const description = truncateText(getLocalizedDescription(game), 180);
       const descriptionBlock = description
         ? `<div class="gs-tip-section"><p class="gs-tip-desc">${escapeHtml(description)}</p></div>`
         : '';
-  
-      const pageUrl = game.slug ? `${SITE_BASE}/${game.slug}` : SITE_BASE;
-      const apiUrl = entry.apiUrl || (game.slug ? buildApiUrl(game.slug) : null);
-      const footerLinks = [
-        apiUrl
-          ? `<a href="${escapeAttr(apiUrl)}" target="_blank" rel="noopener noreferrer">API</a>`
-          : '',
-        `<a href="${escapeAttr(pageUrl)}" target="_blank" rel="noopener noreferrer">GameStatus</a>`,
-      ]
-        .filter(Boolean)
-        .join(' · ');
 
       return `
-        <strong>${escapeHtml(game.title || 'GameStatus')}</strong>
-        <div class="gs-tip-section">${rows}</div>
-        ${specsBlock}
-        ${descriptionBlock}
-        ${formatTooltipActions()}
-        <div class="gs-tip-footer">${footerLinks}</div>
+        <div class="gs-tip-header">
+          ${cover}
+          <div class="gs-tip-header-body">
+            <div class="gs-tip-title">${escapeHtml(game.title || 'GameStatus')}</div>
+            <div class="gs-tip-chips">${headerChips}</div>
+          </div>
+        </div>
+        <div class="gs-tip-body">
+          ${infoRows ? `<div class="gs-tip-section">${infoRows}</div>` : ''}
+          ${scoresBlock}
+          ${formatHardwareSection(game.specs_info)}
+          ${descriptionBlock}
+        </div>
+        ${formatTooltipFooter(entry, game)}
       `;
     }
   

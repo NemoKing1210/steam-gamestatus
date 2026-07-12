@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Cache TTL is configurable (default remains 6 hours for all lookups, including not-found); set to 0 to disable caching
+- Tooltips redesigned in a Steam-like popover style: cover image, status/protection/AAA chips, colored score badges, structured hardware block
 
 ## [1.3.2] - 2026-07-12
 
