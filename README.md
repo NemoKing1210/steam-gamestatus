@@ -2,7 +2,7 @@
 
 [![Install userscript](https://img.shields.io/badge/Install-userscript-66c0f4?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/steam-gamestatus/main/steam-gamestatus.user.js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.3.0-green?style=for-the-badge)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.3.2-green?style=for-the-badge)](CHANGELOG.md)
 
 A userscript for the Steam store and Steam Community that adds extra game information from [GameStatus.info](https://gamestatus.info) — protection, release dates, scores, hardware specs, and more.
 
@@ -138,17 +138,18 @@ Scan DOM for links matching /app/{appId}/
 
 ### Game lookup
 
-The script does not call the API by Steam App ID directly. It builds one or more URL slugs from:
+The script does not call the GameStatus API by Steam App ID directly. It builds one or more URL slugs from:
 
 - The `/app/{id}/{slug}` segment in the link
 - The game title from card DOM or page heading
 - Canonical / Open Graph URLs on game pages
+- If none of the above yield a slug (e.g. Personal Calendar capsules with `/app/{id}?…` only), the Steam Store `appdetails` name is fetched and slugified
 
 Each slug is tried in order until a matching record is found (`steam_prod_id` equals the Steam App ID). Invalid slugs (CDN hostnames, numeric-only segments, etc.) are filtered out.
 
 ### Caching
 
-Results are stored in Tampermonkey/Violentmonkey storage (`gs_steam_cache_v3`):
+Results are stored in Tampermonkey/Violentmonkey storage (`gs_steam_cache_v5`):
 
 | Result | TTL |
 |--------|-----|

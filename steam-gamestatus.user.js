@@ -10,7 +10,7 @@
 // @name:ko           Steam GameStatus
 // @name:pl           Steam GameStatus
 // @namespace         https://github.com/NemoKing1210/steam-gamestatus
-// @version           1.3.0
+// @version           1.3.2
 // @description       Adds extra game info from gamestatus.info on Steam store cards and game pages
 // @description:ru    Добавляет доп. информацию с gamestatus.info на карточки Steam и страницы игр
 // @description:zh-CN 在 Steam 商店卡片和游戏页面显示来自 gamestatus.info 的额外游戏信息
@@ -48,7 +48,7 @@
     const API_BASE = 'https://gamestatus.info/back/api/gameinfo/game';
     const SITE_BASE = 'https://gamestatus.info';
     const DONATE_URL = `${SITE_BASE}/#donate`;
-    const CACHE_KEY = 'gs_steam_cache_v3';
+    const CACHE_KEY = 'gs_steam_cache_v5';
     const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
     const NEGATIVE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
     const MAX_CONCURRENT = 2;
@@ -60,6 +60,7 @@
     const HYDRATE_BATCH_SIZE = 3;
     const MAX_SLUG_ATTEMPTS = 2;
     const BADGE_CLASS = 'gs-steam-badge';
+    const STEAM_APPDETAILS_URL = 'https://store.steampowered.com/api/appdetails';
 
     const SUPPORTED_LOCALES = ['en', 'ru', 'zh', 'es', 'pt', 'de', 'fr', 'ja', 'ko', 'pl'];
 
@@ -375,7 +376,7 @@
         position: absolute;
         top: 8px;
         left: 8px;
-        z-index: 12;
+        z-index: 100;
         display: inline-flex;
         align-items: center;
         gap: 5px;
@@ -490,7 +491,7 @@
       }
 
       .carousel_wide_mode .store_main_capsule.focus .${BADGE_CLASS} {
-        z-index: 20;
+        z-index: 110;
       }
 
       [class*="StoreSalePriceWidgetContainer"] > .${BADGE_CLASS}--chart {
@@ -798,6 +799,31 @@
       if (!match) return null;
       return slugify(match[1].replace(/_/g, '-'));
     }
+
+    function hrefMatchesAppId(href, appId) {
+      if (!href || !appId) return false;
+      return extractAppIdFromHref(href) === String(appId);
+    }
+
+    function findAppAnchor(root, appId, { includeClosest = false } = {}) {
+      if (!root || !appId) return null;
+      const id = String(appId);
+
+      if (root instanceof HTMLAnchorElement && hrefMatchesAppId(root.href, id)) {
+        return root;
+      }
+
+      if (includeClosest && root.closest) {
+        const wrap = root.closest('a[href*="/app/"]');
+        if (wrap && hrefMatchesAppId(wrap.href, id)) return wrap;
+      }
+
+      if (!root.querySelectorAll) return null;
+      for (const anchor of root.querySelectorAll('a[href*="/app/"]')) {
+        if (hrefMatchesAppId(anchor.href, id)) return anchor;
+      }
+      return null;
+    }
   
     function getPageAppId() {
       const fromUrl = extractAppIdFromHref(location.pathname);
@@ -829,7 +855,10 @@
     ];
   
     const INVALID_SLUG_RE =
-      /^(https?-)?(store-)?steam(powered|static)?(-[a-z0-9]+)*(-com)?$|steampowered|steamstatic|akamaihd/;
+      /^(https?-)?(store-)?steam(powered|static)?(-[a-z0-9]+)*(-com)?$|steampowered|steamstatic|akamaihd|^(on-)?wishlist$|^gamestatus$|^(soon-)?on-game-pass$/;
+
+    const UI_CHROME_TITLE_RE =
+      /^(in library|в библиотеке|owned|ignored|on wishlist|в вишлисте|в желаемом|wishlisted|on game pass|soon on game pass|скоро в game pass|gamestatus(?:…|\.{0,3})?|not in database|нет в базе|load error|ошибка загрузки|\+\d+\s*more)$/i;
   
     function looksLikePriceText(text) {
       const value = String(text || '').replace(/\s+/g, ' ').trim();
@@ -845,6 +874,14 @@
   
       const digits = (value.match(/\d/g) || []).length;
       return digits > 0 && digits / value.length > 0.45 && /%|руб|₽|\$|€|£/.test(value);
+    }
+
+    function isUiChromeTitle(text) {
+      const value = String(text || '').replace(/\s+/g, ' ').trim();
+      if (!value) return true;
+      if (UI_CHROME_TITLE_RE.test(value)) return true;
+      if (/^game\s*status/i.test(value)) return true;
+      return false;
     }
   
     function isValidSlug(slug) {
@@ -864,14 +901,9 @@
     function getCardTitle(card, link) {
       const sources = [];
 
-      const skipTitle = (value) => {
-        const text = String(value || '').replace(/\s+/g, ' ').trim();
-        return /^(in library|в библиотеке|owned|ignored)$/i.test(text);
-      };
-
       const add = (value) => {
         const text = String(value || '').replace(/\s+/g, ' ').trim();
-        if (!text || skipTitle(text) || looksLikePriceText(text) || sources.includes(text)) return;
+        if (!text || isUiChromeTitle(text) || looksLikePriceText(text) || sources.includes(text)) return;
         sources.push(text);
       };
   
@@ -905,11 +937,17 @@
         add(slugFromHref.replace(/-/g, ' '));
       }
   
-      if (!sources.length && link?.textContent) {
-        const firstLine = link.textContent
+      if (!sources.length && link) {
+        const clone = link.cloneNode(true);
+        clone
+          .querySelectorAll(
+            `.${BADGE_CLASS}, .ds_flag, .ds_options, .alike_cont, [class*="WishlistFlag"], [class*="wishlist_flag"]`
+          )
+          .forEach((el) => el.remove());
+        const firstLine = clone.textContent
           .split('\n')
           .map((line) => line.trim())
-          .find((line) => line && !looksLikePriceText(line));
+          .find((line) => line && !looksLikePriceText(line) && !isUiChromeTitle(line));
         add(firstLine);
       }
   
@@ -926,7 +964,7 @@
       const addFromHref = (href) => addSlug(extractSlugFromHref(href));
       const addFromText = (text) => {
         const normalized = String(text || '').replace(/\s+/g, ' ').trim();
-        if (!normalized || looksLikePriceText(normalized)) return;
+        if (!normalized || looksLikePriceText(normalized) || isUiChromeTitle(normalized)) return;
   
         addSlug(slugify(normalized));
         addSlug(slugify(normalized.replace(/\s*[-–—:|].*$/, '')));
@@ -1021,20 +1059,51 @@
       const data = await requestJson(buildApiUrl(slug));
       return isMatchingGame(data, appId) ? data : null;
     }
-  
-    async function resolveGame(appId, link, title) {
-      const cached = getCached(appId);
-      if (cached) return cached;
-  
-      const slugs = buildSlugCandidates(appId, link, title);
-      const triedUrls = slugs.map(buildApiUrl);
-      const slugsToTry = slugs.slice(0, MAX_SLUG_ATTEMPTS);
 
+    const steamTitleCache = new Map();
+    const steamTitleInflight = new Map();
+
+    async function fetchSteamAppTitle(appId) {
+      const key = String(appId);
+      if (steamTitleCache.has(key)) return steamTitleCache.get(key);
+      if (steamTitleInflight.has(key)) return steamTitleInflight.get(key);
+
+      const promise = (async () => {
+        try {
+          const onStore = location.hostname === 'store.steampowered.com';
+          const url = `${STEAM_APPDETAILS_URL}?appids=${encodeURIComponent(key)}&filters=basic`;
+          const response = await fetch(url, {
+            credentials: onStore ? 'same-origin' : 'omit',
+          });
+          if (!response.ok) {
+            steamTitleCache.set(key, null);
+            return null;
+          }
+          const json = await response.json();
+          const payload = json?.[key];
+          const name = payload?.success ? payload.data?.name : null;
+          const title = name ? String(name).replace(/\s+/g, ' ').trim() : null;
+          steamTitleCache.set(key, title || null);
+          return title || null;
+        } catch {
+          steamTitleCache.set(key, null);
+          return null;
+        } finally {
+          steamTitleInflight.delete(key);
+        }
+      })();
+
+      steamTitleInflight.set(key, promise);
+      return promise;
+    }
+  
+    async function tryResolveBySlugs(appId, slugs, triedUrls) {
+      const slugsToTry = slugs.slice(0, MAX_SLUG_ATTEMPTS);
       for (const slug of slugsToTry) {
         try {
           const data = await fetchBySlug(slug, appId);
           if (data) {
-            const entry = {
+            return {
               data,
               slug,
               slugs,
@@ -1042,15 +1111,60 @@
               apiUrl: buildApiUrl(slug),
               missing: false,
             };
-            setCached(appId, entry);
-            return entry;
           }
         } catch {
           // try next slug
         }
       }
-  
-      const entry = {
+      return null;
+    }
+
+    async function resolveGame(appId, link, title) {
+      const cached = getCached(appId);
+      if (cached) return cached;
+
+      const safeTitle = isUiChromeTitle(title) ? '' : title;
+      let resolvedTitle = safeTitle;
+      let slugs = buildSlugCandidates(appId, link, resolvedTitle);
+      let triedUrls = slugs.map(buildApiUrl);
+      let usedSteamTitle = false;
+
+      // Capsules like Personal Calendar often have /app/{id}?… with no real title
+      // (DOM may only expose Steam UI chrome such as "ON WISHLIST").
+      if (!slugs.length) {
+        const steamTitle = await fetchSteamAppTitle(appId);
+        usedSteamTitle = true;
+        if (steamTitle) {
+          resolvedTitle = steamTitle;
+          slugs = buildSlugCandidates(appId, link, resolvedTitle);
+          triedUrls = slugs.map(buildApiUrl);
+        }
+      }
+
+      let entry = await tryResolveBySlugs(appId, slugs, triedUrls);
+      if (entry) {
+        setCached(appId, entry);
+        return entry;
+      }
+
+      // Bad DOM titles (wishlist flags, badge text) can yield junk slugs — retry via Steam name.
+      if (!usedSteamTitle) {
+        const steamTitle = await fetchSteamAppTitle(appId);
+        if (steamTitle && steamTitle !== resolvedTitle) {
+          const steamSlugs = buildSlugCandidates(appId, link, steamTitle);
+          const steamTried = [...new Set([...triedUrls, ...steamSlugs.map(buildApiUrl)])];
+          entry = await tryResolveBySlugs(appId, steamSlugs, steamTried);
+          if (entry) {
+            setCached(appId, entry);
+            return entry;
+          }
+          slugs = steamSlugs.length ? steamSlugs : slugs;
+          triedUrls = steamTried;
+          resolvedTitle = steamTitle;
+        }
+      }
+
+      entry = {
         data: null,
         slug: slugs[0] || null,
         slugs,
@@ -1539,7 +1653,7 @@
       if (anchor.querySelector(`.${BADGE_CLASS}:not(.${BADGE_CLASS}--loading)`)) return;
       if (anchor.dataset.gsObserved === '1' && anchor.querySelector(`.${BADGE_CLASS}--loading`)) return;
 
-      const cardLink = getCardLink(card);
+      const cardLink = getCardLink(card) || link;
       const title = getCardTitle(card, cardLink);
       const resolvedAppId = cardAppId || appId;
       const existing = cards.get(resolvedAppId);
@@ -1757,17 +1871,10 @@
 
       const cardAppId = getCardAppId(card);
       if (cardAppId) {
-        if (isDsAppCapsule(card)) {
-          const wrapLink =
-            card.closest(`a[href*="/app/${cardAppId}/"]`) ||
-            card.parentElement?.closest?.(`a[href*="/app/${cardAppId}/"]`);
-          if (wrapLink && extractAppIdFromHref(wrapLink.href) === cardAppId) {
-            return wrapLink;
-          }
-        }
-
-        const matchedLink = card.querySelector(`a[href*="/app/${cardAppId}/"]`);
-        if (matchedLink) return matchedLink;
+        const matched =
+          findAppAnchor(card, cardAppId, { includeClosest: isDsAppCapsule(card) }) ||
+          (isDsAppCapsule(card) ? findAppAnchor(card.parentElement, cardAppId, { includeClosest: true }) : null);
+        if (matched) return matched;
       }
 
       if (isChartTableRow(card)) {
@@ -1973,7 +2080,10 @@
       anchor.prepend(loader);
 
       const title = getPageTitle();
-      const link = document.querySelector(`a[href*="/app/${appId}/"]`) || { href: location.pathname };
+      const link =
+        findAppAnchor(document, appId) ||
+        document.querySelector(`a[href*="/app/${appId}"]`) ||
+        { href: location.pathname };
 
       try {
         const entry = await loadGame(appId, link, title);

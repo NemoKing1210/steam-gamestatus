@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.2] - 2026-07-12
+
+### Fixed
+
+- Personal Calendar: Steam UI chrome (`ON WISHLIST`, badge “GameStatus…”) was used as the game title, producing junk slugs (`on-wishlist`, `gamestatus`) and skipping the Steam name lookup — chrome titles are ignored and GameStatus is resolved via Steam `appdetails` when needed
+
+## [1.3.1] - 2026-07-12
+
+### Fixed
+
+- Personal Calendar and other capsules with `/app/{id}?…` links (no slug or title in the DOM): resolve the Steam store name via `appdetails`, then look up GameStatus by slug
+- Card link matching no longer requires a trailing slash after the App ID (query-string-only hrefs work)
+
 ## [1.3.0] - 2026-07-12
 
 ### Changed
