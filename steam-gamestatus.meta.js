@@ -1,26 +1,26 @@
 // ==UserScript==
-// @name              Steam GameStatus — crack status
-// @name:ru           Steam GameStatus — статус взлома
-// @name:zh-CN        Steam GameStatus — 破解状态
-// @name:es           Steam GameStatus — estado de crack
-// @name:pt-BR        Steam GameStatus — status de crack
-// @name:de           Steam GameStatus — Crack-Status
-// @name:fr           Steam GameStatus — statut de crack
-// @name:ja           Steam GameStatus — クラック状況
-// @name:ko           Steam GameStatus — 크랙 상태
-// @name:pl           Steam GameStatus — status cracka
+// @name              Steam GameStatus
+// @name:ru           Steam GameStatus
+// @name:zh-CN        Steam GameStatus
+// @name:es           Steam GameStatus
+// @name:pt-BR        Steam GameStatus
+// @name:de           Steam GameStatus
+// @name:fr           Steam GameStatus
+// @name:ja           Steam GameStatus
+// @name:ko           Steam GameStatus
+// @name:pl           Steam GameStatus
 // @namespace         https://github.com/NemoKing1210/steam-gamestatus
 // @version           1.2.1
-// @description       Shows game crack status from gamestatus.info on Steam store cards and game pages
-// @description:ru    Показывает статус взлома игр с gamestatus.info на карточках Steam и страницах игр
-// @description:zh-CN 在 Steam 商店卡片和游戏页面显示来自 gamestatus.info 的破解状态
-// @description:es    Muestra el estado de crack de gamestatus.info en tarjetas y páginas de Steam
-// @description:pt-BR  Mostra o status de crack do gamestatus.info nos cards e páginas da Steam
-// @description:de     Zeigt Crack-Status von gamestatus.info auf Steam-Karten und Spielseiten
-// @description:fr     Affiche le statut de crack gamestatus.info sur les cartes et pages Steam
-// @description:ja     Steamのカードとゲームページに gamestatus.info のクラック状況を表示
-// @description:ko     Steam 카드 및 게임 페이지에 gamestatus.info 크랙 상태를 표시
-// @description:pl     Pokazuje status cracka z gamestatus.info na kartach i stronach Steam
+// @description       Adds extra game info from gamestatus.info on Steam store cards and game pages
+// @description:ru    Добавляет доп. информацию с gamestatus.info на карточки Steam и страницы игр
+// @description:zh-CN 在 Steam 商店卡片和游戏页面显示来自 gamestatus.info 的额外游戏信息
+// @description:es    Añade información extra de gamestatus.info en tarjetas y páginas de Steam
+// @description:pt-BR  Adiciona informações extras do gamestatus.info nos cards e páginas da Steam
+// @description:de     Zeigt zusätzliche Spieldaten von gamestatus.info auf Steam-Karten und Spielseiten
+// @description:fr     Ajoute des infos supplémentaires de gamestatus.info sur les cartes et pages Steam
+// @description:ja     Steamのカードとゲームページに gamestatus.info の追加ゲーム情報を表示
+// @description:ko     Steam 카드 및 게임 페이지에 gamestatus.info 추가 게임 정보를 표시
+// @description:pl     Dodaje dodatkowe informacje z gamestatus.info na kartach i stronach Steam
 // @author             NemoKing1210
 // @tag                steam
 // @tag                games

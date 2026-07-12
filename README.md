@@ -4,9 +4,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.2.1-green?style=for-the-badge)](CHANGELOG.md)
 
-A userscript for the Steam store and Steam Community that shows crack and DRM protection status for games using data from [GameStatus.info](https://gamestatus.info).
+A userscript for the Steam store and Steam Community that adds extra game information from [GameStatus.info](https://gamestatus.info) — protection, release dates, scores, hardware specs, and more.
 
-While browsing Steam, you see compact status badges on game cards and in the game page header — without leaving the store.
+While browsing Steam, you see compact info badges on game cards and in the game page header — without leaving the store.
 
 Compatible with [Tampermonkey](https://www.tampermonkey.net/), [Violentmonkey](https://violentmonkey.github.io/), [Greasemonkey](https://www.greasespot.net/), ScriptCat, and other managers that support the `// ==UserScript==` metadata block.
 
@@ -56,7 +56,7 @@ Managers compare the installed `@version` with the remote metadata to decide whe
 
 - **Status badges on game cards** — store home, search results, wishlists, sale pages, and other listings with `/app/{id}` links
 - **Status badge on game pages** — compact status chip in `.apphub_OtherSiteInfo` next to Community Hub / Store Page links
-- **Rich tooltips** — hover a badge to see protection, crack date, release date, scores, hardware requirements, and more
+- **Rich tooltips** — hover a badge to see protection, release dates, scores, hardware requirements, and more
 - **Color-coded statuses** — quick visual scan across a long list of games
 - **Lazy loading** — badges load only when cards scroll into view
 - **Smart caching** — responses are cached locally to reduce API load and speed up repeat visits
@@ -72,15 +72,15 @@ Managers compare the installed `@version` with the remote metadata to decide whe
 
 ## Status colors
 
-Each badge has a colored dot that reflects the game’s crack status:
+Each badge has a colored dot that reflects the game’s status on GameStatus.info:
 
 | Color | Status | Meaning |
 |-------|--------|---------|
-| Green | Cracked | Game has been cracked; `crack_date` is set or status indicates a crack |
-| Orange | Not cracked (recent) | Not cracked yet; released less than one month ago |
-| Red | Not cracked (long wait) | Not cracked yet; released more than one month ago |
-| Orange | Protection bypass | Bypass method (e.g. hypervisor bypass) rather than a traditional crack |
-| Blue | Release today | Game releases today; crack status may still be pending |
+| Green | Ready | Status indicates the game is ready / available |
+| Orange | Pending (recent) | Pending status; released less than one month ago |
+| Red | Pending (long wait) | Pending status; released more than one month ago |
+| Orange | Protection bypass | Status indicates a protection bypass method |
+| Blue | Release today | Game releases today; status may still be pending |
 | Gray | Unknown / Not in database | Status unclear, or game not found on GameStatus.info |
 | Blue (spinner) | Loading | Data is being fetched from the API |
 
@@ -90,11 +90,11 @@ Clicking a badge opens the game’s page on GameStatus.info (or the site homepag
 
 When you hover over a badge, a tooltip may show:
 
-- **Status** — human-readable crack status
+- **Status** — human-readable status from GameStatus.info
 - **Protection** — DRM / anti-tamper (e.g. Denuvo, VMProtect)
-- **Group** — scene or release group
+- **Group** — related group name (when available)
 - **Release** — official release date
-- **Crack** — crack release date
+- **Updated** — status update date (when available)
 - **Steam ID** — Steam application ID
 - **Score** — user rating on GameStatus.info
 - **Metacritic** — Metacritic score (if available)
@@ -102,7 +102,7 @@ When you hover over a badge, a tooltip may show:
 - **Subscriptions** — subscriber count
 - **Hardware** — minimum/recommended CPU, RAM, GPU, OS
 - **Description** — short game description
-- **Links** — API endpoint, GameStatus page, torrent link (when available)
+- **Links** — API endpoint and GameStatus page
 
 If a game is not in the database, the tooltip lists the API URLs that were tried during lookup.
 

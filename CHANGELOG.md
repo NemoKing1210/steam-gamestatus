@@ -18,9 +18,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - Support donate button in tooltips (`gamestatus.info/#donate`) with localization
-- Torrent link as a separate green button in tooltip actions
+- External link button in tooltip actions (when available from API)
 - Chart table rows (Top Sellers): badge in `StoreSalePriceWidgetContainer` next to price
-- Not-cracked badge colors by release age: orange (less than 1 month), red (more than 1 month)
+- Pending-status badge colors by release age: orange (less than 1 month), red (more than 1 month)
 
 ### Changed
 
@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Badge styling aligned with Steam `.app_tag` (flat `#384959` chips, `border-radius: 3px`, `box-shadow: 1px 1px 0 #000`)
-- Status colors use Steam palette (`#BEEE11`/`#4c6b22` for cracked, `#FFB321` bypass, `#67c1f5` accents)
+- Status colors use Steam palette (`#BEEE11`/`#4c6b22` for ready, `#FFB321` bypass, `#67c1f5` accents)
 - Tooltips restyled as dark store popovers (`#3D4450`, `border-radius: 2px`, `box-shadow: 0 0 3px #000`)
 - Tooltip positioning defaults above the badge (Steam `tooltip.js` behavior)
 
@@ -77,8 +77,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Crack status badges on Steam store game cards and game pages
-- Rich hover tooltips with protection, crack date, hardware specs, and links
+- Status badges on Steam store game cards and game pages (data from GameStatus.info)
+- Rich hover tooltips with protection, dates, hardware specs, and links
 - Lazy loading via `IntersectionObserver` and request queue (max 4 concurrent)
 - Local response cache with positive (6 h) and negative (24 h) TTL
 - UI localization for 10 languages based on browser locale (fallback: English)

@@ -1,26 +1,26 @@
 // ==UserScript==
-// @name              Steam GameStatus — crack status
-// @name:ru           Steam GameStatus — статус взлома
-// @name:zh-CN        Steam GameStatus — 破解状态
-// @name:es           Steam GameStatus — estado de crack
-// @name:pt-BR        Steam GameStatus — status de crack
-// @name:de           Steam GameStatus — Crack-Status
-// @name:fr           Steam GameStatus — statut de crack
-// @name:ja           Steam GameStatus — クラック状況
-// @name:ko           Steam GameStatus — 크랙 상태
-// @name:pl           Steam GameStatus — status cracka
+// @name              Steam GameStatus
+// @name:ru           Steam GameStatus
+// @name:zh-CN        Steam GameStatus
+// @name:es           Steam GameStatus
+// @name:pt-BR        Steam GameStatus
+// @name:de           Steam GameStatus
+// @name:fr           Steam GameStatus
+// @name:ja           Steam GameStatus
+// @name:ko           Steam GameStatus
+// @name:pl           Steam GameStatus
 // @namespace         https://github.com/NemoKing1210/steam-gamestatus
 // @version           1.2.1
-// @description       Shows game crack status from gamestatus.info on Steam store cards and game pages
-// @description:ru    Показывает статус взлома игр с gamestatus.info на карточках Steam и страницах игр
-// @description:zh-CN 在 Steam 商店卡片和游戏页面显示来自 gamestatus.info 的破解状态
-// @description:es    Muestra el estado de crack de gamestatus.info en tarjetas y páginas de Steam
-// @description:pt-BR  Mostra o status de crack do gamestatus.info nos cards e páginas da Steam
-// @description:de     Zeigt Crack-Status von gamestatus.info auf Steam-Karten und Spielseiten
-// @description:fr     Affiche le statut de crack gamestatus.info sur les cartes et pages Steam
-// @description:ja     Steamのカードとゲームページに gamestatus.info のクラック状況を表示
-// @description:ko     Steam 카드 및 게임 페이지에 gamestatus.info 크랙 상태를 표시
-// @description:pl     Pokazuje status cracka z gamestatus.info na kartach i stronach Steam
+// @description       Adds extra game info from gamestatus.info on Steam store cards and game pages
+// @description:ru    Добавляет доп. информацию с gamestatus.info на карточки Steam и страницы игр
+// @description:zh-CN 在 Steam 商店卡片和游戏页面显示来自 gamestatus.info 的额外游戏信息
+// @description:es    Añade información extra de gamestatus.info en tarjetas y páginas de Steam
+// @description:pt-BR  Adiciona informações extras do gamestatus.info nos cards e páginas da Steam
+// @description:de     Zeigt zusätzliche Spieldaten von gamestatus.info auf Steam-Karten und Spielseiten
+// @description:fr     Ajoute des infos supplémentaires de gamestatus.info sur les cartes et pages Steam
+// @description:ja     Steamのカードとゲームページに gamestatus.info の追加ゲーム情報を表示
+// @description:ko     Steam 카드 및 게임 페이지에 gamestatus.info 추가 게임 정보를 표시
+// @description:pl     Dodaje dodatkowe informacje z gamestatus.info na kartach i stronach Steam
 // @author             NemoKing1210
 // @tag                steam
 // @tag                games
@@ -66,8 +66,8 @@
     const TRANSLATIONS = {
       en: {
         notInDatabase: 'Not in database',
-        cracked: 'Cracked',
-        notCracked: 'Not cracked',
+        cracked: 'Ready',
+        notCracked: 'Pending',
         protectionBypass: 'Protection bypass',
         releaseToday: 'Release today',
         unknownStatus: 'Unknown status',
@@ -77,22 +77,21 @@
         protection: 'Protection',
         group: 'Group',
         release: 'Release',
-        crack: 'Crack',
+        crack: 'Updated',
         steamId: 'Steam ID',
         score: 'Score',
         metacritic: 'Metacritic',
         type: 'Type',
         subscriptions: 'Subscriptions',
         hardware: 'Hardware',
-        torrent: 'Torrent',
         supportProject: 'Support project',
         loadError: 'Load error',
         loading: 'GameStatus…',
       },
       ru: {
         notInDatabase: 'Нет в базе',
-        cracked: 'Взломана',
-        notCracked: 'Не взломана',
+        cracked: 'Готово',
+        notCracked: 'Ожидание',
         protectionBypass: 'Обход защиты',
         releaseToday: 'Релиз сегодня',
         unknownStatus: 'Статус неизвестен',
@@ -102,22 +101,21 @@
         protection: 'Защита',
         group: 'Группа',
         release: 'Релиз',
-        crack: 'Взлом',
+        crack: 'Обновлено',
         steamId: 'Steam ID',
         score: 'Оценка',
         metacritic: 'Metacritic',
         type: 'Тип',
         subscriptions: 'Подписки',
         hardware: 'Железо',
-        torrent: 'Торрент',
         supportProject: 'Поддержать проект',
         loadError: 'Ошибка загрузки',
         loading: 'GameStatus…',
       },
       zh: {
         notInDatabase: '未收录',
-        cracked: '已破解',
-        notCracked: '未破解',
+        cracked: '就绪',
+        notCracked: '待定',
         protectionBypass: '保护绕过',
         releaseToday: '今日发售',
         unknownStatus: '状态未知',
@@ -127,22 +125,21 @@
         protection: '保护',
         group: '组织',
         release: '发售',
-        crack: '破解',
+        crack: '更新',
         steamId: 'Steam ID',
         score: '评分',
         metacritic: 'Metacritic',
         type: '类型',
         subscriptions: '订阅数',
         hardware: '硬件',
-        torrent: '种子',
         supportProject: '支持项目',
         loadError: '加载失败',
         loading: 'GameStatus…',
       },
       es: {
         notInDatabase: 'No está en la base de datos',
-        cracked: 'Crackeado',
-        notCracked: 'Sin crackear',
+        cracked: 'Listo',
+        notCracked: 'Pendiente',
         protectionBypass: 'Bypass de protección',
         releaseToday: 'Lanzamiento hoy',
         unknownStatus: 'Estado desconocido',
@@ -152,22 +149,21 @@
         protection: 'Protección',
         group: 'Grupo',
         release: 'Lanzamiento',
-        crack: 'Crack',
+        crack: 'Actualizado',
         steamId: 'Steam ID',
         score: 'Puntuación',
         metacritic: 'Metacritic',
         type: 'Tipo',
         subscriptions: 'Suscripciones',
         hardware: 'Hardware',
-        torrent: 'Torrent',
         supportProject: 'Apoyar el proyecto',
         loadError: 'Error de carga',
         loading: 'GameStatus…',
       },
       pt: {
         notInDatabase: 'Não está no banco de dados',
-        cracked: 'Crackeado',
-        notCracked: 'Não crackeado',
+        cracked: 'Pronto',
+        notCracked: 'Pendente',
         protectionBypass: 'Bypass de proteção',
         releaseToday: 'Lançamento hoje',
         unknownStatus: 'Status desconhecido',
@@ -177,22 +173,21 @@
         protection: 'Proteção',
         group: 'Grupo',
         release: 'Lançamento',
-        crack: 'Crack',
+        crack: 'Atualizado',
         steamId: 'Steam ID',
         score: 'Pontuação',
         metacritic: 'Metacritic',
         type: 'Tipo',
         subscriptions: 'Inscrições',
         hardware: 'Hardware',
-        torrent: 'Torrent',
         supportProject: 'Apoiar o projeto',
         loadError: 'Erro ao carregar',
         loading: 'GameStatus…',
       },
       de: {
         notInDatabase: 'Nicht in der Datenbank',
-        cracked: 'Gecrackt',
-        notCracked: 'Nicht gecrackt',
+        cracked: 'Bereit',
+        notCracked: 'Ausstehend',
         protectionBypass: 'Schutz-Umgehung',
         releaseToday: 'Release heute',
         unknownStatus: 'Status unbekannt',
@@ -202,22 +197,21 @@
         protection: 'Schutz',
         group: 'Gruppe',
         release: 'Release',
-        crack: 'Crack',
+        crack: 'Aktualisiert',
         steamId: 'Steam ID',
         score: 'Bewertung',
         metacritic: 'Metacritic',
         type: 'Typ',
         subscriptions: 'Abonnements',
         hardware: 'Hardware',
-        torrent: 'Torrent',
         supportProject: 'Projekt unterstützen',
         loadError: 'Ladefehler',
         loading: 'GameStatus…',
       },
       fr: {
         notInDatabase: 'Absent de la base',
-        cracked: 'Cracké',
-        notCracked: 'Non cracké',
+        cracked: 'Prêt',
+        notCracked: 'En attente',
         protectionBypass: 'Contournement',
         releaseToday: 'Sortie aujourd\'hui',
         unknownStatus: 'Statut inconnu',
@@ -227,22 +221,21 @@
         protection: 'Protection',
         group: 'Groupe',
         release: 'Sortie',
-        crack: 'Crack',
+        crack: 'Mis à jour',
         steamId: 'Steam ID',
         score: 'Note',
         metacritic: 'Metacritic',
         type: 'Type',
         subscriptions: 'Abonnements',
         hardware: 'Configuration',
-        torrent: 'Torrent',
         supportProject: 'Soutenir le projet',
         loadError: 'Erreur de chargement',
         loading: 'GameStatus…',
       },
       ja: {
         notInDatabase: 'データベースに未登録',
-        cracked: 'クラック済み',
-        notCracked: '未クラック',
+        cracked: '準備完了',
+        notCracked: '保留中',
         protectionBypass: '保護回避',
         releaseToday: '本日リリース',
         unknownStatus: 'ステータス不明',
@@ -252,22 +245,21 @@
         protection: '保護',
         group: 'グループ',
         release: 'リリース',
-        crack: 'クラック',
+        crack: '更新',
         steamId: 'Steam ID',
         score: 'スコア',
         metacritic: 'Metacritic',
         type: 'タイプ',
         subscriptions: '購読数',
         hardware: 'スペック',
-        torrent: 'トレント',
         supportProject: 'プロジェクトを支援',
         loadError: '読み込みエラー',
         loading: 'GameStatus…',
       },
       ko: {
         notInDatabase: '데이터베이스에 없음',
-        cracked: '크랙됨',
-        notCracked: '미크랙',
+        cracked: '준비됨',
+        notCracked: '대기 중',
         protectionBypass: '보호 우회',
         releaseToday: '오늘 출시',
         unknownStatus: '상태 불명',
@@ -277,22 +269,21 @@
         protection: '보호',
         group: '그룹',
         release: '출시',
-        crack: '크랙',
+        crack: '업데이트',
         steamId: 'Steam ID',
         score: '점수',
         metacritic: 'Metacritic',
         type: '유형',
         subscriptions: '구독 수',
         hardware: '사양',
-        torrent: '토렌트',
         supportProject: '프로젝트 후원',
         loadError: '로드 오류',
         loading: 'GameStatus…',
       },
       pl: {
         notInDatabase: 'Brak w bazie',
-        cracked: 'Zcrackowana',
-        notCracked: 'Bez cracka',
+        cracked: 'Gotowe',
+        notCracked: 'Oczekujące',
         protectionBypass: 'Obejście zabezpieczeń',
         releaseToday: 'Premiera dziś',
         unknownStatus: 'Nieznany status',
@@ -302,14 +293,13 @@
         protection: 'Zabezpieczenie',
         group: 'Grupa',
         release: 'Premiera',
-        crack: 'Crack',
+        crack: 'Zaktualizowano',
         steamId: 'Steam ID',
         score: 'Ocena',
         metacritic: 'Metacritic',
         type: 'Typ',
         subscriptions: 'Subskrypcje',
         hardware: 'Sprzęt',
-        torrent: 'Torrent',
         supportProject: 'Wspieraj projekt',
         loadError: 'Błąd ładowania',
         loading: 'GameStatus…',
@@ -708,33 +698,6 @@
         margin-top: 8px;
         padding-top: 8px;
         border-top: 1px solid rgba(255, 255, 255, 0.1);
-      }
-
-      .${BADGE_CLASS}__tooltip .gs-tip-torrent-btn {
-        display: inline-block;
-        padding: 1px;
-        border-radius: 2px;
-        border: none;
-        background: linear-gradient(-60deg, #4c6b22 5%, #6ba32d 95%);
-        color: #ffffff !important;
-        text-decoration: none !important;
-        cursor: pointer;
-      }
-
-      .${BADGE_CLASS}__tooltip .gs-tip-torrent-btn > span {
-        display: block;
-        padding: 0 15px;
-        font: normal 13px/28px "Motiva Sans", Arial, sans-serif;
-        color: #ffffff !important;
-        background: transparent;
-        border-radius: 2px;
-        text-align: center;
-      }
-
-      .${BADGE_CLASS}__tooltip .gs-tip-torrent-btn:hover {
-        background: linear-gradient(-60deg, #5a7f28 5%, #7bb832 95%);
-        color: #ffffff !important;
-        text-decoration: none !important;
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-donate-btn {
@@ -1195,15 +1158,8 @@
       `;
     }
 
-    function formatTooltipActions(torrentLink = null) {
-      const buttons = [
-        torrentLink
-          ? `<a class="gs-tip-torrent-btn" href="${escapeAttr(torrentLink)}" target="_blank" rel="noopener noreferrer"><span>${escapeHtml(t('torrent'))}</span></a>`
-          : '',
-        `<a class="gs-tip-donate-btn" href="${escapeAttr(DONATE_URL)}" target="_blank" rel="noopener noreferrer"><span>${escapeHtml(t('supportProject'))}</span></a>`,
-      ].filter(Boolean);
-
-      return `<div class="gs-tip-actions">${buttons.join('')}</div>`;
+    function formatTooltipActions() {
+      return `<div class="gs-tip-actions"><a class="gs-tip-donate-btn" href="${escapeAttr(DONATE_URL)}" target="_blank" rel="noopener noreferrer"><span>${escapeHtml(t('supportProject'))}</span></a></div>`;
     }
   
     function formatTooltip(entry) {
@@ -1270,14 +1226,12 @@
         .filter(Boolean)
         .join(' · ');
 
-      const torrentButton = formatTooltipActions(game.torrent_link || null);
-
       return `
         <strong>${escapeHtml(game.title || 'GameStatus')}</strong>
         <div class="gs-tip-section">${rows}</div>
         ${specsBlock}
         ${descriptionBlock}
-        ${torrentButton}
+        ${formatTooltipActions()}
         <div class="gs-tip-footer">${footerLinks}</div>
       `;
     }
