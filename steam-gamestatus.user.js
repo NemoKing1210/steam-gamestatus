@@ -10,7 +10,7 @@
 // @name:ko           Steam GameStatus
 // @name:pl           Steam GameStatus
 // @namespace         https://github.com/NemoKing1210/steam-gamestatus
-// @version           1.3.2
+// @version           1.4.0
 // @description       Adds extra game info from gamestatus.info on Steam store cards and game pages
 // @description:ru    Добавляет доп. информацию с gamestatus.info на карточки Steam и страницы игр
 // @description:zh-CN 在 Steam 商店卡片和游戏页面显示来自 gamestatus.info 的额外游戏信息
@@ -36,6 +36,7 @@
 // @grant              GM_getValue
 // @grant              GM_setValue
 // @grant              GM_addStyle
+// @grant              GM_registerMenuCommand
 // @connect            gamestatus.info
 // @connect            cdn.gamestatus.info
 // @run-at             document-idle
@@ -49,8 +50,14 @@
     const SITE_BASE = 'https://gamestatus.info';
     const DONATE_URL = `${SITE_BASE}/#donate`;
     const CACHE_KEY = 'gs_steam_cache_v5';
-    const CACHE_TTL_MS = 6 * 60 * 60 * 1000;
-    const NEGATIVE_CACHE_TTL_MS = 24 * 60 * 60 * 1000;
+    const SETTINGS_KEY = 'gs_steam_settings';
+    const CACHE_HOURS_MAX = 168;
+    const DEFAULT_SETTINGS = {
+      cacheHours: 6,
+      badgeVertical: 'top',
+      badgeHorizontal: 'left',
+      showMissingBadge: true,
+    };
     const MAX_CONCURRENT = 2;
     const CARD_ROOT_MARGIN = '80px 0px';
     const SCAN_DEBOUNCE_MS = 450;
@@ -88,6 +95,36 @@
         supportProject: 'Support project',
         loadError: 'Load error',
         loading: 'GameStatus…',
+        menuSettings: 'Steam GameStatus — Settings',
+        btnTitle: 'Steam GameStatus',
+        btnText: 'GameStatus',
+        panelTitle: 'GameStatus',
+        panelSubtitle: 'Badges · cache · display options',
+        close: 'Close',
+        cancel: 'Cancel',
+        save: 'Save',
+        saveReload: 'Save & Reload page',
+        sectionBadge: 'Badge',
+        sectionCache: 'Cache',
+        badgePosition: 'Position on cards',
+        badgeVertical: 'Vertical',
+        badgeHorizontal: 'Horizontal',
+        posTop: 'Top',
+        posBottom: 'Bottom',
+        posLeft: 'Left',
+        posRight: 'Right',
+        badgePositionHint: 'Applies to badges on store cards. Game page chips stay in the header.',
+        showMissing: 'Show “not in database” badges',
+        showMissingHint: 'When off, cards without a GameStatus match stay unmarked.',
+        on: 'ON',
+        off: 'OFF',
+        cacheHours: 'Cache duration (hours)',
+        cacheHoursHint:
+          'How long to reuse API results (including not-found). 0 disables cache. Clear cache or reload to refetch sooner.',
+        clearCache: 'Clear cache',
+        cacheCleared: 'Cache cleared ({count})',
+        cacheEmpty: 'Cache is empty',
+        cacheClearHint: 'Removes all stored GameStatus lookups from this browser profile.',
       },
       ru: {
         notInDatabase: 'Нет в базе',
@@ -112,6 +149,36 @@
         supportProject: 'Поддержать проект',
         loadError: 'Ошибка загрузки',
         loading: 'GameStatus…',
+        menuSettings: 'Steam GameStatus — Настройки',
+        btnTitle: 'Steam GameStatus',
+        btnText: 'GameStatus',
+        panelTitle: 'GameStatus',
+        panelSubtitle: 'Бейджи · кеш · отображение',
+        close: 'Закрыть',
+        cancel: 'Отмена',
+        save: 'Сохранить',
+        saveReload: 'Сохранить и обновить',
+        sectionBadge: 'Бейдж',
+        sectionCache: 'Кеш',
+        badgePosition: 'Положение на карточках',
+        badgeVertical: 'По вертикали',
+        badgeHorizontal: 'По горизонтали',
+        posTop: 'Сверху',
+        posBottom: 'Снизу',
+        posLeft: 'Слева',
+        posRight: 'Справа',
+        badgePositionHint: 'Для бейджей на карточках магазина. На странице игры чип остаётся в шапке.',
+        showMissing: 'Показывать «нет в базе»',
+        showMissingHint: 'Если выключено, карточки без записи в GameStatus остаются без бейджа.',
+        on: 'ВКЛ',
+        off: 'ВЫКЛ',
+        cacheHours: 'Время кеширования (часы)',
+        cacheHoursHint:
+          'Как долго хранить ответы API (включая «не найдено»). 0 отключает кеш. Сброс кеша или обновление страницы — для немедленного запроса.',
+        clearCache: 'Сбросить кеш',
+        cacheCleared: 'Кеш очищен ({count})',
+        cacheEmpty: 'Кеш пуст',
+        cacheClearHint: 'Удаляет все сохранённые ответы GameStatus в этом профиле браузера.',
       },
       zh: {
         notInDatabase: '未收录',
@@ -136,6 +203,35 @@
         supportProject: '支持项目',
         loadError: '加载失败',
         loading: 'GameStatus…',
+        menuSettings: 'Steam GameStatus — 设置',
+        btnTitle: 'Steam GameStatus',
+        btnText: 'GameStatus',
+        panelTitle: 'GameStatus',
+        panelSubtitle: '徽章 · 缓存 · 显示选项',
+        close: '关闭',
+        cancel: '取消',
+        save: '保存',
+        saveReload: '保存并刷新页面',
+        sectionBadge: '徽章',
+        sectionCache: '缓存',
+        badgePosition: '卡片上的位置',
+        badgeVertical: '垂直',
+        badgeHorizontal: '水平',
+        posTop: '顶部',
+        posBottom: '底部',
+        posLeft: '左侧',
+        posRight: '右侧',
+        badgePositionHint: '适用于商店卡片上的徽章。游戏页徽章仍在页头。',
+        showMissing: '显示“未收录”徽章',
+        showMissingHint: '关闭后，未在 GameStatus 找到的游戏不显示徽章。',
+        on: '开',
+        off: '关',
+        cacheHours: '缓存时长（小时）',
+        cacheHoursHint: '复用 API 结果（含未找到）的时间。0 禁用缓存。清空缓存或刷新可立即重新请求。',
+        clearCache: '清空缓存',
+        cacheCleared: '已清空缓存（{count}）',
+        cacheEmpty: '缓存为空',
+        cacheClearHint: '删除此浏览器配置中保存的全部 GameStatus 查询结果。',
       },
       es: {
         notInDatabase: 'No está en la base de datos',
@@ -160,6 +256,36 @@
         supportProject: 'Apoyar el proyecto',
         loadError: 'Error de carga',
         loading: 'GameStatus…',
+        menuSettings: 'Steam GameStatus — Ajustes',
+        btnTitle: 'Steam GameStatus',
+        btnText: 'GameStatus',
+        panelTitle: 'GameStatus',
+        panelSubtitle: 'Insignias · caché · visualización',
+        close: 'Cerrar',
+        cancel: 'Cancelar',
+        save: 'Guardar',
+        saveReload: 'Guardar y recargar',
+        sectionBadge: 'Insignia',
+        sectionCache: 'Caché',
+        badgePosition: 'Posición en las cartas',
+        badgeVertical: 'Vertical',
+        badgeHorizontal: 'Horizontal',
+        posTop: 'Arriba',
+        posBottom: 'Abajo',
+        posLeft: 'Izquierda',
+        posRight: 'Derecha',
+        badgePositionHint: 'Aplica a insignias en cartas de la tienda. En la página del juego permanece en la cabecera.',
+        showMissing: 'Mostrar “no está en la base”',
+        showMissingHint: 'Si está desactivado, las cartas sin coincidencia en GameStatus quedan sin insignia.',
+        on: 'ON',
+        off: 'OFF',
+        cacheHours: 'Duración de caché (horas)',
+        cacheHoursHint:
+          'Cuánto reutilizar resultados de la API (incluido no encontrado). 0 desactiva la caché. Vaciar o recargar para pedir de nuevo.',
+        clearCache: 'Vaciar caché',
+        cacheCleared: 'Caché vaciada ({count})',
+        cacheEmpty: 'La caché está vacía',
+        cacheClearHint: 'Elimina todas las consultas de GameStatus guardadas en este perfil del navegador.',
       },
       pt: {
         notInDatabase: 'Não está no banco de dados',
@@ -184,6 +310,36 @@
         supportProject: 'Apoiar o projeto',
         loadError: 'Erro ao carregar',
         loading: 'GameStatus…',
+        menuSettings: 'Steam GameStatus — Configurações',
+        btnTitle: 'Steam GameStatus',
+        btnText: 'GameStatus',
+        panelTitle: 'GameStatus',
+        panelSubtitle: 'Emblemas · cache · exibição',
+        close: 'Fechar',
+        cancel: 'Cancelar',
+        save: 'Salvar',
+        saveReload: 'Salvar e recarregar',
+        sectionBadge: 'Emblema',
+        sectionCache: 'Cache',
+        badgePosition: 'Posição nos cards',
+        badgeVertical: 'Vertical',
+        badgeHorizontal: 'Horizontal',
+        posTop: 'Topo',
+        posBottom: 'Base',
+        posLeft: 'Esquerda',
+        posRight: 'Direita',
+        badgePositionHint: 'Aplica-se a emblemas nos cards da loja. Na página do jogo permanece no cabeçalho.',
+        showMissing: 'Mostrar “não está no banco”',
+        showMissingHint: 'Se desativado, cards sem correspondência no GameStatus ficam sem emblema.',
+        on: 'ON',
+        off: 'OFF',
+        cacheHours: 'Duração do cache (horas)',
+        cacheHoursHint:
+          'Por quanto tempo reutilizar resultados da API (incluindo não encontrado). 0 desativa o cache. Limpe ou recarregue para buscar de novo.',
+        clearCache: 'Limpar cache',
+        cacheCleared: 'Cache limpo ({count})',
+        cacheEmpty: 'O cache está vazio',
+        cacheClearHint: 'Remove todas as consultas do GameStatus salvas neste perfil do navegador.',
       },
       de: {
         notInDatabase: 'Nicht in der Datenbank',
@@ -208,6 +364,36 @@
         supportProject: 'Projekt unterstützen',
         loadError: 'Ladefehler',
         loading: 'GameStatus…',
+        menuSettings: 'Steam GameStatus — Einstellungen',
+        btnTitle: 'Steam GameStatus',
+        btnText: 'GameStatus',
+        panelTitle: 'GameStatus',
+        panelSubtitle: 'Badges · Cache · Anzeige',
+        close: 'Schließen',
+        cancel: 'Abbrechen',
+        save: 'Speichern',
+        saveReload: 'Speichern & neu laden',
+        sectionBadge: 'Badge',
+        sectionCache: 'Cache',
+        badgePosition: 'Position auf Karten',
+        badgeVertical: 'Vertikal',
+        badgeHorizontal: 'Horizontal',
+        posTop: 'Oben',
+        posBottom: 'Unten',
+        posLeft: 'Links',
+        posRight: 'Rechts',
+        badgePositionHint: 'Gilt für Badges auf Store-Karten. Auf der Spielseite bleibt der Chip in der Kopfzeile.',
+        showMissing: '„Nicht in der Datenbank“ anzeigen',
+        showMissingHint: 'Wenn aus, bleiben Karten ohne GameStatus-Treffer ohne Badge.',
+        on: 'AN',
+        off: 'AUS',
+        cacheHours: 'Cache-Dauer (Stunden)',
+        cacheHoursHint:
+          'Wie lange API-Ergebnisse wiederverwendet werden (inkl. nicht gefunden). 0 deaktiviert den Cache. Leeren oder neu laden zum Sofortabruf.',
+        clearCache: 'Cache leeren',
+        cacheCleared: 'Cache geleert ({count})',
+        cacheEmpty: 'Cache ist leer',
+        cacheClearHint: 'Entfernt alle gespeicherten GameStatus-Abfragen in diesem Browserprofil.',
       },
       fr: {
         notInDatabase: 'Absent de la base',
@@ -232,6 +418,36 @@
         supportProject: 'Soutenir le projet',
         loadError: 'Erreur de chargement',
         loading: 'GameStatus…',
+        menuSettings: 'Steam GameStatus — Paramètres',
+        btnTitle: 'Steam GameStatus',
+        btnText: 'GameStatus',
+        panelTitle: 'GameStatus',
+        panelSubtitle: 'Badges · cache · affichage',
+        close: 'Fermer',
+        cancel: 'Annuler',
+        save: 'Enregistrer',
+        saveReload: 'Enregistrer et recharger',
+        sectionBadge: 'Badge',
+        sectionCache: 'Cache',
+        badgePosition: 'Position sur les cartes',
+        badgeVertical: 'Vertical',
+        badgeHorizontal: 'Horizontal',
+        posTop: 'Haut',
+        posBottom: 'Bas',
+        posLeft: 'Gauche',
+        posRight: 'Droite',
+        badgePositionHint: 'S’applique aux badges des cartes boutique. Sur la page jeu, le chip reste dans l’en-tête.',
+        showMissing: 'Afficher « absent de la base »',
+        showMissingHint: 'Si désactivé, les cartes sans correspondance GameStatus restent sans badge.',
+        on: 'ON',
+        off: 'OFF',
+        cacheHours: 'Durée du cache (heures)',
+        cacheHoursHint:
+          'Combien de temps réutiliser les résultats API (y compris introuvable). 0 désactive le cache. Vider ou recharger pour refetch.',
+        clearCache: 'Vider le cache',
+        cacheCleared: 'Cache vidé ({count})',
+        cacheEmpty: 'Le cache est vide',
+        cacheClearHint: 'Supprime toutes les requêtes GameStatus enregistrées dans ce profil navigateur.',
       },
       ja: {
         notInDatabase: 'データベースに未登録',
@@ -256,6 +472,36 @@
         supportProject: 'プロジェクトを支援',
         loadError: '読み込みエラー',
         loading: 'GameStatus…',
+        menuSettings: 'Steam GameStatus — 設定',
+        btnTitle: 'Steam GameStatus',
+        btnText: 'GameStatus',
+        panelTitle: 'GameStatus',
+        panelSubtitle: 'バッジ · キャッシュ · 表示',
+        close: '閉じる',
+        cancel: 'キャンセル',
+        save: '保存',
+        saveReload: '保存して再読み込み',
+        sectionBadge: 'バッジ',
+        sectionCache: 'キャッシュ',
+        badgePosition: 'カード上の位置',
+        badgeVertical: '上下',
+        badgeHorizontal: '左右',
+        posTop: '上',
+        posBottom: '下',
+        posLeft: '左',
+        posRight: '右',
+        badgePositionHint: 'ストアカードのバッジに適用。ゲームページのチップはヘッダーのままです。',
+        showMissing: '「未登録」バッジを表示',
+        showMissingHint: 'オフにすると、GameStatus にないゲームはバッジなしのままになります。',
+        on: 'ON',
+        off: 'OFF',
+        cacheHours: 'キャッシュ期間（時間）',
+        cacheHoursHint:
+          'API 結果（未検出含む）を再利用する時間。0 でキャッシュ無効。クリアまたは再読み込みで即再取得。',
+        clearCache: 'キャッシュをクリア',
+        cacheCleared: 'キャッシュをクリアしました（{count}）',
+        cacheEmpty: 'キャッシュは空です',
+        cacheClearHint: 'このブラウザプロファイルに保存された GameStatus の結果をすべて削除します。',
       },
       ko: {
         notInDatabase: '데이터베이스에 없음',
@@ -280,6 +526,36 @@
         supportProject: '프로젝트 후원',
         loadError: '로드 오류',
         loading: 'GameStatus…',
+        menuSettings: 'Steam GameStatus — 설정',
+        btnTitle: 'Steam GameStatus',
+        btnText: 'GameStatus',
+        panelTitle: 'GameStatus',
+        panelSubtitle: '배지 · 캐시 · 표시',
+        close: '닫기',
+        cancel: '취소',
+        save: '저장',
+        saveReload: '저장 후 새로고침',
+        sectionBadge: '배지',
+        sectionCache: '캐시',
+        badgePosition: '카드 위치',
+        badgeVertical: '세로',
+        badgeHorizontal: '가로',
+        posTop: '위',
+        posBottom: '아래',
+        posLeft: '왼쪽',
+        posRight: '오른쪽',
+        badgePositionHint: '스토어 카드 배지에 적용됩니다. 게임 페이지 칩은 헤더에 유지됩니다.',
+        showMissing: '“데이터베이스에 없음” 표시',
+        showMissingHint: '끄면 GameStatus에 없는 게임은 배지 없이 남습니다.',
+        on: 'ON',
+        off: 'OFF',
+        cacheHours: '캐시 기간(시간)',
+        cacheHoursHint:
+          'API 결과(미발견 포함)를 재사용하는 시간. 0은 캐시 비활성화. 비우거나 새로고침하면 즉시 다시 요청.',
+        clearCache: '캐시 비우기',
+        cacheCleared: '캐시를 비웠습니다 ({count})',
+        cacheEmpty: '캐시가 비어 있습니다',
+        cacheClearHint: '이 브라우저 프로필에 저장된 모든 GameStatus 조회를 삭제합니다.',
       },
       pl: {
         notInDatabase: 'Brak w bazie',
@@ -304,6 +580,36 @@
         supportProject: 'Wspieraj projekt',
         loadError: 'Błąd ładowania',
         loading: 'GameStatus…',
+        menuSettings: 'Steam GameStatus — Ustawienia',
+        btnTitle: 'Steam GameStatus',
+        btnText: 'GameStatus',
+        panelTitle: 'GameStatus',
+        panelSubtitle: 'Odznaki · cache · wyświetlanie',
+        close: 'Zamknij',
+        cancel: 'Anuluj',
+        save: 'Zapisz',
+        saveReload: 'Zapisz i odśwież',
+        sectionBadge: 'Odznaka',
+        sectionCache: 'Cache',
+        badgePosition: 'Pozycja na kartach',
+        badgeVertical: 'Pionowo',
+        badgeHorizontal: 'Poziomo',
+        posTop: 'Góra',
+        posBottom: 'Dół',
+        posLeft: 'Lewo',
+        posRight: 'Prawo',
+        badgePositionHint: 'Dotyczy odznak na kartach sklepu. Na stronie gry chip zostaje w nagłówku.',
+        showMissing: 'Pokazuj „brak w bazie”',
+        showMissingHint: 'Gdy wyłączone, karty bez dopasowania w GameStatus pozostają bez odznaki.',
+        on: 'WŁ',
+        off: 'WYŁ',
+        cacheHours: 'Czas cache (godziny)',
+        cacheHoursHint:
+          'Jak długo ponownie używać wyników API (w tym nie znaleziono). 0 wyłącza cache. Wyczyść lub odśwież, by pobrać od razu.',
+        clearCache: 'Wyczyść cache',
+        cacheCleared: 'Cache wyczyszczony ({count})',
+        cacheEmpty: 'Cache jest pusty',
+        cacheClearHint: 'Usuwa wszystkie zapisane zapytania GameStatus w tym profilu przeglądarki.',
       },
     };
 
@@ -321,8 +627,76 @@
 
     const LOCALE = resolveLocale();
 
-    function t(key) {
-      return TRANSLATIONS[LOCALE]?.[key] ?? TRANSLATIONS.en[key] ?? key;
+    /** @type {typeof DEFAULT_SETTINGS} */
+    let settings = loadSettings();
+    let panelOpen = false;
+
+    function t(key, vars) {
+      let text = TRANSLATIONS[LOCALE]?.[key] ?? TRANSLATIONS.en[key] ?? key;
+      if (vars && typeof vars === 'object') {
+        for (const [name, value] of Object.entries(vars)) {
+          text = text.replace(new RegExp(`\\{${name}\\}`, 'g'), String(value));
+        }
+      }
+      return text;
+    }
+
+    function normalizeCacheHours(value) {
+      const n = Math.round(Number(value));
+      if (!Number.isFinite(n) || n < 0) return DEFAULT_SETTINGS.cacheHours;
+      return Math.min(n, CACHE_HOURS_MAX);
+    }
+
+    function normalizeBadgeVertical(value) {
+      return value === 'bottom' ? 'bottom' : 'top';
+    }
+
+    function normalizeBadgeHorizontal(value) {
+      return value === 'right' ? 'right' : 'left';
+    }
+
+    function loadSettings() {
+      const raw = GM_getValue(SETTINGS_KEY, null);
+      if (!raw || typeof raw !== 'object') return { ...DEFAULT_SETTINGS };
+      return {
+        ...DEFAULT_SETTINGS,
+        ...raw,
+        cacheHours: normalizeCacheHours(raw.cacheHours),
+        badgeVertical: normalizeBadgeVertical(raw.badgeVertical),
+        badgeHorizontal: normalizeBadgeHorizontal(raw.badgeHorizontal),
+        showMissingBadge: raw.showMissingBadge !== false,
+      };
+    }
+
+    function saveSettings(next) {
+      settings = {
+        ...settings,
+        ...next,
+        cacheHours: normalizeCacheHours(next.cacheHours ?? settings.cacheHours),
+        badgeVertical: normalizeBadgeVertical(next.badgeVertical ?? settings.badgeVertical),
+        badgeHorizontal: normalizeBadgeHorizontal(next.badgeHorizontal ?? settings.badgeHorizontal),
+        showMissingBadge:
+          typeof next.showMissingBadge === 'boolean'
+            ? next.showMissingBadge
+            : settings.showMissingBadge !== false,
+      };
+      GM_setValue(SETTINGS_KEY, settings);
+      applyBadgePosition();
+      updateSettingsButtonState();
+    }
+
+    function getCacheTtlMs() {
+      const hours = normalizeCacheHours(settings.cacheHours);
+      return hours > 0 ? hours * 60 * 60 * 1000 : 0;
+    }
+
+    function applyBadgePosition() {
+      const root = document.documentElement;
+      root.classList.remove('gs-badge-v-top', 'gs-badge-v-bottom', 'gs-badge-h-left', 'gs-badge-h-right');
+      root.classList.add(
+        settings.badgeVertical === 'bottom' ? 'gs-badge-v-bottom' : 'gs-badge-v-top',
+        settings.badgeHorizontal === 'right' ? 'gs-badge-h-right' : 'gs-badge-h-left'
+      );
     }
 
     function getApiLanguage() {
@@ -374,8 +748,10 @@
         --gs-text: #c7d5e0;
         --gs-muted: #8f98a0;
         position: absolute;
-        top: 8px;
-        left: 8px;
+        top: auto;
+        right: auto;
+        bottom: auto;
+        left: auto;
         z-index: 100;
         display: inline-flex;
         align-items: center;
@@ -393,6 +769,22 @@
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
+      }
+
+      html.gs-badge-v-top .${BADGE_CLASS}:not(.${BADGE_CLASS}--page):not(.${BADGE_CLASS}--chart) {
+        top: 8px;
+      }
+
+      html.gs-badge-v-bottom .${BADGE_CLASS}:not(.${BADGE_CLASS}--page):not(.${BADGE_CLASS}--chart) {
+        bottom: 8px;
+      }
+
+      html.gs-badge-h-left .${BADGE_CLASS}:not(.${BADGE_CLASS}--page):not(.${BADGE_CLASS}--chart) {
+        left: 8px;
+      }
+
+      html.gs-badge-h-right .${BADGE_CLASS}:not(.${BADGE_CLASS}--page):not(.${BADGE_CLASS}--chart) {
+        right: 8px;
       }
 
       .${BADGE_CLASS}:hover {
@@ -731,6 +1123,259 @@
       @keyframes gs-spin {
         to { transform: rotate(360deg); }
       }
+
+      #gs-settings-btn.gs-header-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-right: 8px;
+        height: 24px;
+        padding: 0 10px;
+        border: none;
+        border-radius: 2px;
+        background: linear-gradient(to bottom, #66c0f4 5%, #417a9b 95%);
+        color: #fff;
+        font: 700 11px/24px "Motiva Sans", Arial, Helvetica, sans-serif;
+        text-shadow: 0 1px 1px rgba(0,0,0,.3);
+        cursor: pointer;
+        position: relative;
+        white-space: nowrap;
+        box-shadow: 0 0 0 1px rgba(0,0,0,.35);
+      }
+      #gs-settings-btn.gs-header-btn:hover {
+        background: linear-gradient(to bottom, #7dcaFA 5%, #4d8bb0 95%);
+      }
+      #gs-settings-btn.gs-header-btn.is-open {
+        background: linear-gradient(to bottom, #a4d007 5%, #536904 95%);
+      }
+      .gs-header-btn__dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: rgba(255,255,255,.35);
+        box-shadow: inset 0 0 0 1px rgba(0,0,0,.25);
+      }
+      .gs-header-btn__dot.is-on {
+        background: #beee11;
+        box-shadow: 0 0 6px rgba(190,238,17,.8);
+      }
+
+      .gs-panel {
+        position: fixed;
+        z-index: 999999;
+        width: 360px;
+        max-height: calc(100vh - 24px);
+        overflow: auto;
+        background: linear-gradient(180deg, #1b2838 0%, #16202d 100%);
+        border: 1px solid #000;
+        box-shadow: 0 0 12px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.04);
+        color: #c7d5e0;
+        font: 12px/1.4 "Motiva Sans", Arial, Helvetica, sans-serif;
+        border-radius: 3px;
+      }
+      .gs-panel__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 14px 10px;
+        background: radial-gradient(120% 80% at 0% 0%, rgba(102,192,244,.18), transparent 55%),
+                    linear-gradient(90deg, #1a2332, #1b2838);
+        border-bottom: 1px solid #000;
+      }
+      .gs-panel__title {
+        color: #fff;
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .gs-panel__subtitle {
+        margin-top: 2px;
+        color: #8f98a0;
+        font-size: 11px;
+      }
+      .gs-panel__close {
+        border: 0;
+        background: transparent;
+        color: #8f98a0;
+        font-size: 20px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0 2px;
+      }
+      .gs-panel__close:hover { color: #fff; }
+      .gs-panel__section {
+        padding: 10px 14px;
+      }
+      .gs-panel__section-title {
+        margin: 0 0 8px;
+        color: #66c0f4;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+      }
+      .gs-panel__section--row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .gs-panel__divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #000, transparent);
+        margin: 0 10px;
+      }
+      .gs-panel__footer {
+        display: flex;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 12px 14px 14px;
+        border-top: 1px solid #000;
+        background: rgba(0,0,0,.2);
+      }
+      .gs-field {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        margin-bottom: 8px;
+      }
+      .gs-field:last-child { margin-bottom: 0; }
+      .gs-field__label {
+        color: #8f98a0;
+        text-transform: uppercase;
+        letter-spacing: .04em;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      .gs-field input,
+      .gs-field select {
+        height: 30px;
+        padding: 0 8px;
+        border: 1px solid #000;
+        border-radius: 2px;
+        background: #316282;
+        color: #fff;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
+        outline: none;
+        font: inherit;
+      }
+      .gs-field input::placeholder { color: rgba(255,255,255,.45); }
+      .gs-field input:focus,
+      .gs-field select:focus {
+        background: #3d7a9c;
+        box-shadow: 0 0 0 1px #66c0f4;
+      }
+      .gs-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+      .gs-hint {
+        margin: 6px 0 0;
+        color: #8f98a0;
+        font-size: 11px;
+        line-height: 1.35;
+      }
+      .gs-switch {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+      }
+      .gs-switch input {
+        position: absolute;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .gs-switch__track {
+        width: 34px;
+        height: 18px;
+        border-radius: 9px;
+        background: #0e1620;
+        border: 1px solid #000;
+        position: relative;
+        box-shadow: inset 0 1px 2px rgba(0,0,0,.5);
+        flex: 0 0 auto;
+      }
+      .gs-switch__track::after {
+        content: '';
+        position: absolute;
+        top: 1px;
+        left: 1px;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: #8f98a0;
+        transition: transform .15s ease, background .15s ease;
+      }
+      .gs-switch input:checked + .gs-switch__track {
+        background: linear-gradient(to bottom, #66c0f4, #417a9b);
+      }
+      .gs-switch input:checked + .gs-switch__track::after {
+        transform: translateX(16px);
+        background: #fff;
+      }
+      .gs-switch__label { color: #c7d5e0; }
+      .gs-pill {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: .06em;
+        padding: 2px 7px;
+        border-radius: 2px;
+        background: #0e1620;
+        color: #8f98a0;
+        border: 1px solid #000;
+        flex: 0 0 auto;
+      }
+      .gs-pill.is-on {
+        color: #beee11;
+        background: #1b3708;
+        border-color: #53760d;
+      }
+      .gs-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 28px;
+        padding: 0 12px;
+        border: none;
+        border-radius: 2px;
+        cursor: pointer;
+        color: #fff;
+        font: 700 12px/28px "Motiva Sans", Arial, Helvetica, sans-serif;
+        background: linear-gradient(to bottom, #66c0f4 5%, #417a9b 95%);
+        text-shadow: 0 1px 1px rgba(0,0,0,.3);
+        box-shadow: 0 0 0 1px rgba(0,0,0,.4);
+      }
+      .gs-btn:hover { filter: brightness(1.08); }
+      .gs-btn--ghost {
+        background: linear-gradient(to bottom, #3d4450 5%, #2c313a 95%);
+      }
+      .gs-btn--green {
+        background: linear-gradient(to bottom, #a4d007 5%, #536904 95%);
+      }
+      .gs-btn--danger {
+        background: linear-gradient(to bottom, #c45c5c 5%, #8a3030 95%);
+      }
+      .gs-cache-status {
+        margin: 8px 0 0;
+        min-height: 14px;
+        color: #beee11;
+        font-size: 11px;
+      }
+      .gs-cache-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 8px;
+      }
+
+      @media (max-width: 900px) {
+        .gs-header-btn__text { display: none; }
+      }
     `);
   
     function loadMemoryCache() {
@@ -765,17 +1410,34 @@
     }
 
     function getCached(appId) {
+      const ttl = getCacheTtlMs();
+      if (ttl <= 0) return null;
       const entry = readCache()[String(appId)];
       if (!entry) return null;
-      const ttl = entry.missing ? NEGATIVE_CACHE_TTL_MS : CACHE_TTL_MS;
       if (Date.now() - entry.ts > ttl) return null;
       return entry;
     }
 
     function setCached(appId, payload) {
+      if (getCacheTtlMs() <= 0) return;
       const cache = readCache();
       cache[String(appId)] = { ...payload, ts: Date.now() };
       writeCache(cache);
+    }
+
+    function getCacheEntryCount() {
+      return Object.keys(readCache()).length;
+    }
+
+    function clearGameCache() {
+      const count = getCacheEntryCount();
+      memoryCache = {};
+      cacheDirty = false;
+      clearTimeout(cachePersistTimer);
+      cachePersistTimer = null;
+      GM_setValue(CACHE_KEY, '{}');
+      inflight.clear();
+      return count;
     }
   
     function slugify(text) {
@@ -1493,6 +2155,8 @@
     function isRelevantAddedNode(node) {
       if (node.nodeType !== Node.ELEMENT_NODE) return false;
       const el = /** @type {Element} */ (node);
+      if (el.id === 'gs-panel' || el.id === 'gs-settings-btn') return false;
+      if (el.closest?.('#gs-panel')) return false;
       if (el.classList?.contains(BADGE_CLASS)) return false;
       if (el.closest?.(`.${BADGE_CLASS}__tooltip`)) return false;
       if (el.closest?.('[data-gs-observed="1"]')) {
@@ -1966,6 +2630,11 @@
       delete anchor.dataset.gsTitle;
     }
 
+    function shouldRenderMissingBadge(entry) {
+      if (entry?.data) return true;
+      return settings.showMissingBadge !== false;
+    }
+
     async function hydrateCard(card, appId, link, title) {
       const anchor = getBadgeAnchor(card);
       const isChart = isChartTableRow(card);
@@ -1986,6 +2655,18 @@
           return;
         }
 
+        if (!shouldRenderMissingBadge(entry)) {
+          requestAnimationFrame(() => {
+            if (anchor.dataset.gsAppId && anchor.dataset.gsAppId !== resolvedAppId) {
+              loader?.remove();
+              return;
+            }
+            loader?.remove();
+            anchor.dataset.gsMissingHidden = '1';
+          });
+          return;
+        }
+
         const badge = renderBadge(entry, { isChart, appId: resolvedAppId });
         requestAnimationFrame(() => {
           if (anchor.dataset.gsAppId && anchor.dataset.gsAppId !== resolvedAppId) {
@@ -1996,6 +2677,11 @@
         });
       } catch {
         if (anchor.dataset.gsAppId && anchor.dataset.gsAppId !== resolvedAppId) {
+          loader?.remove();
+          return;
+        }
+
+        if (!settings.showMissingBadge) {
           loader?.remove();
           return;
         }
@@ -2087,8 +2773,16 @@
 
       try {
         const entry = await loadGame(appId, link, title);
+        if (!shouldRenderMissingBadge(entry)) {
+          loader.remove();
+          return;
+        }
         loader.replaceWith(renderBadge(entry, { isPage: true }));
       } catch {
+        if (!settings.showMissingBadge) {
+          loader.remove();
+          return;
+        }
         const badge = renderBadge({ data: null, missing: true, triedUrls: [] }, { isPage: true });
         badge.querySelector(`.${BADGE_CLASS}__label`).textContent = t('loadError');
         loader.replaceWith(badge);
@@ -2127,10 +2821,272 @@
 
     const scheduleScan = debounce(runScan, SCAN_DEBOUNCE_MS);
 
+    /* ─── Header button + settings panel ─── */
+
+    function observeHeader() {
+      const observer = new MutationObserver(() => {
+        if (!document.getElementById('gs-settings-btn')) {
+          ensureSettingsButton();
+        }
+      });
+      observer.observe(document.documentElement, { childList: true, subtree: true });
+    }
+
+    function waitForElement(selector, timeout = 15000) {
+      return new Promise((resolve) => {
+        const existing = document.querySelector(selector);
+        if (existing) {
+          resolve(existing);
+          return;
+        }
+        const observer = new MutationObserver(() => {
+          const el = document.querySelector(selector);
+          if (el) {
+            observer.disconnect();
+            resolve(el);
+          }
+        });
+        observer.observe(document.documentElement, { childList: true, subtree: true });
+        setTimeout(() => {
+          observer.disconnect();
+          resolve(document.querySelector(selector));
+        }, timeout);
+      });
+    }
+
+    async function ensureSettingsButton() {
+      const host = await waitForElement('#global_actions', 20000);
+      if (!host || document.getElementById('gs-settings-btn')) {
+        updateSettingsButtonState();
+        return document.getElementById('gs-settings-btn');
+      }
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.id = 'gs-settings-btn';
+      btn.className = 'gs-header-btn';
+      btn.title = t('btnTitle');
+      btn.innerHTML = `
+        <span class="gs-header-btn__text">${escapeHtml(t('btnText'))}</span>
+        <span class="gs-header-btn__dot" id="gs-settings-dot"></span>
+      `;
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        togglePanel();
+      });
+
+      const srbbBtn = host.querySelector('#srbb-settings-btn');
+      const sihBtn = host.querySelector('.sih-features-button');
+      if (srbbBtn) host.insertBefore(btn, srbbBtn.nextSibling);
+      else if (sihBtn) host.insertBefore(btn, sihBtn);
+      else host.insertBefore(btn, host.firstChild);
+
+      ensurePanel();
+      updateSettingsButtonState();
+      return btn;
+    }
+
+    function updateSettingsButtonState() {
+      const dot = document.getElementById('gs-settings-dot');
+      const customized =
+        settings.cacheHours !== DEFAULT_SETTINGS.cacheHours ||
+        settings.badgeVertical !== DEFAULT_SETTINGS.badgeVertical ||
+        settings.badgeHorizontal !== DEFAULT_SETTINGS.badgeHorizontal ||
+        settings.showMissingBadge !== DEFAULT_SETTINGS.showMissingBadge;
+      if (dot) {
+        dot.classList.toggle('is-on', customized);
+        dot.title = customized ? t('on') : t('off');
+      }
+    }
+
+    function ensurePanel() {
+      if (document.getElementById('gs-panel')) return;
+
+      const panel = document.createElement('div');
+      panel.id = 'gs-panel';
+      panel.className = 'gs-panel';
+      panel.hidden = true;
+      panel.innerHTML = `
+        <div class="gs-panel__header">
+          <div>
+            <div class="gs-panel__title">${escapeHtml(t('panelTitle'))}</div>
+            <div class="gs-panel__subtitle">${escapeHtml(t('panelSubtitle'))}</div>
+          </div>
+          <button type="button" class="gs-panel__close" data-gs="close" aria-label="${escapeHtml(t('close'))}">×</button>
+        </div>
+
+        <div class="gs-panel__section">
+          <div class="gs-panel__section-title">${escapeHtml(t('sectionBadge'))}</div>
+          <div class="gs-field">
+            <span class="gs-field__label">${escapeHtml(t('badgePosition'))}</span>
+            <div class="gs-grid">
+              <label class="gs-field">
+                <span class="gs-field__label">${escapeHtml(t('badgeVertical'))}</span>
+                <select id="gs-badge-vertical">
+                  <option value="top">${escapeHtml(t('posTop'))}</option>
+                  <option value="bottom">${escapeHtml(t('posBottom'))}</option>
+                </select>
+              </label>
+              <label class="gs-field">
+                <span class="gs-field__label">${escapeHtml(t('badgeHorizontal'))}</span>
+                <select id="gs-badge-horizontal">
+                  <option value="left">${escapeHtml(t('posLeft'))}</option>
+                  <option value="right">${escapeHtml(t('posRight'))}</option>
+                </select>
+              </label>
+            </div>
+          </div>
+          <p class="gs-hint">${escapeHtml(t('badgePositionHint'))}</p>
+        </div>
+
+        <div class="gs-panel__section gs-panel__section--row">
+          <label class="gs-switch">
+            <input type="checkbox" id="gs-show-missing" />
+            <span class="gs-switch__track"></span>
+            <span class="gs-switch__label">${escapeHtml(t('showMissing'))}</span>
+          </label>
+          <span class="gs-pill" id="gs-show-missing-pill">${escapeHtml(t('off'))}</span>
+        </div>
+        <div class="gs-panel__section" style="padding-top:0">
+          <p class="gs-hint" style="margin-top:0">${escapeHtml(t('showMissingHint'))}</p>
+        </div>
+
+        <div class="gs-panel__divider"></div>
+
+        <div class="gs-panel__section">
+          <div class="gs-panel__section-title">${escapeHtml(t('sectionCache'))}</div>
+          <label class="gs-field">
+            <span class="gs-field__label">${escapeHtml(t('cacheHours'))}</span>
+            <input type="number" id="gs-cache-hours" min="0" max="${CACHE_HOURS_MAX}" step="1" placeholder="6" inputmode="numeric" />
+          </label>
+          <p class="gs-hint">${escapeHtml(t('cacheHoursHint'))}</p>
+          <div class="gs-cache-row">
+            <button type="button" class="gs-btn gs-btn--danger" data-gs="clear-cache">${escapeHtml(t('clearCache'))}</button>
+          </div>
+          <p class="gs-hint">${escapeHtml(t('cacheClearHint'))}</p>
+          <p class="gs-cache-status" id="gs-cache-status" aria-live="polite"></p>
+        </div>
+
+        <div class="gs-panel__footer">
+          <button type="button" class="gs-btn gs-btn--ghost" data-gs="close">${escapeHtml(t('cancel'))}</button>
+          <button type="button" class="gs-btn" data-gs="save">${escapeHtml(t('save'))}</button>
+          <button type="button" class="gs-btn gs-btn--green" data-gs="save-run">${escapeHtml(t('saveReload'))}</button>
+        </div>
+      `;
+      document.body.appendChild(panel);
+
+      panel.addEventListener('click', (e) => e.stopPropagation());
+      panel.querySelectorAll('[data-gs="close"]').forEach((el) =>
+        el.addEventListener('click', () => togglePanel(false))
+      );
+      panel.querySelector('[data-gs="save"]').addEventListener('click', () => {
+        persistPanelForm();
+        togglePanel(false);
+      });
+      panel.querySelector('[data-gs="save-run"]').addEventListener('click', () => {
+        persistPanelForm();
+        togglePanel(false);
+        location.reload();
+      });
+      panel.querySelector('[data-gs="clear-cache"]').addEventListener('click', () => {
+        const count = clearGameCache();
+        const status = panel.querySelector('#gs-cache-status');
+        if (status) {
+          status.textContent =
+            count > 0 ? t('cacheCleared', { count }) : t('cacheEmpty');
+        }
+      });
+
+      const missingToggle = panel.querySelector('#gs-show-missing');
+      missingToggle.addEventListener('change', () => syncMissingPill());
+
+      document.addEventListener('click', (e) => {
+        if (!panelOpen) return;
+        const btn = document.getElementById('gs-settings-btn');
+        if (panel.contains(e.target) || btn?.contains(e.target)) return;
+        togglePanel(false);
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && panelOpen) togglePanel(false);
+      });
+    }
+
+    function syncMissingPill() {
+      const panel = document.getElementById('gs-panel');
+      if (!panel) return;
+      const on = panel.querySelector('#gs-show-missing').checked;
+      const pill = panel.querySelector('#gs-show-missing-pill');
+      pill.textContent = on ? t('on') : t('off');
+      pill.classList.toggle('is-on', on);
+    }
+
+    function fillPanelForm() {
+      const panel = document.getElementById('gs-panel');
+      if (!panel) return;
+      panel.querySelector('#gs-badge-vertical').value = normalizeBadgeVertical(settings.badgeVertical);
+      panel.querySelector('#gs-badge-horizontal').value = normalizeBadgeHorizontal(settings.badgeHorizontal);
+      panel.querySelector('#gs-show-missing').checked = settings.showMissingBadge !== false;
+      panel.querySelector('#gs-cache-hours').value = String(normalizeCacheHours(settings.cacheHours));
+      const status = panel.querySelector('#gs-cache-status');
+      if (status) status.textContent = '';
+      syncMissingPill();
+    }
+
+    function persistPanelForm() {
+      const panel = document.getElementById('gs-panel');
+      if (!panel) return;
+      saveSettings({
+        badgeVertical: panel.querySelector('#gs-badge-vertical').value,
+        badgeHorizontal: panel.querySelector('#gs-badge-horizontal').value,
+        showMissingBadge: panel.querySelector('#gs-show-missing').checked,
+        cacheHours: normalizeCacheHours(panel.querySelector('#gs-cache-hours').value),
+      });
+    }
+
+    function togglePanel(force) {
+      ensurePanel();
+      const panel = document.getElementById('gs-panel');
+      const btn = document.getElementById('gs-settings-btn');
+      if (!panel) return;
+
+      panelOpen = typeof force === 'boolean' ? force : !panelOpen;
+      panel.hidden = !panelOpen;
+      btn?.classList.toggle('is-open', panelOpen);
+
+      if (panelOpen) {
+        fillPanelForm();
+        positionPanel();
+      }
+    }
+
+    function positionPanel() {
+      const panel = document.getElementById('gs-panel');
+      const btn = document.getElementById('gs-settings-btn');
+      if (!panel || !btn) return;
+
+      const rect = btn.getBoundingClientRect();
+      const width = 360;
+      let left = rect.right - width;
+      if (left < 8) left = 8;
+      if (left + width > window.innerWidth - 8) left = window.innerWidth - width - 8;
+
+      panel.style.top = `${Math.round(rect.bottom + 8)}px`;
+      panel.style.left = `${Math.round(left)}px`;
+    }
+
     function init() {
+      applyBadgePosition();
       loadMemoryCache();
       setupScrollListener();
       window.addEventListener('pagehide', persistCacheNow);
+      ensureSettingsButton();
+      observeHeader();
+      if (typeof GM_registerMenuCommand === 'function') {
+        GM_registerMenuCommand(t('menuSettings'), () => {
+          ensureSettingsButton().then(() => togglePanel(true));
+        });
+      }
       scheduleScan();
 
       mutationObserver = new MutationObserver((mutations) => {

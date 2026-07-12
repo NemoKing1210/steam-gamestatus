@@ -2,7 +2,7 @@
 
 [![Install userscript](https://img.shields.io/badge/Install-userscript-66c0f4?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/steam-gamestatus/main/steam-gamestatus.user.js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.3.2-green?style=for-the-badge)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.4.0-green?style=for-the-badge)](CHANGELOG.md)
 
 A userscript for the Steam store and Steam Community that adds extra game information from [GameStatus.info](https://gamestatus.info) — protection, release dates, scores, hardware specs, and more.
 
@@ -54,6 +54,7 @@ Managers compare the installed `@version` with the remote metadata to decide whe
 
 ## Features
 
+- **Settings panel** — header button to set badge position, cache duration, clear cache, and whether to show “not in database” badges
 - **Status badges on game cards** — store home, search results, wishlists, sale pages, and other listings with `/app/{id}` links
 - **Status badge on game pages** — compact status chip in `.apphub_OtherSiteInfo` next to Community Hub / Store Page links
 - **Rich tooltips** — hover a badge to see protection, release dates, scores, hardware requirements, and more
@@ -149,14 +150,20 @@ Each slug is tried in order until a matching record is found (`steam_prod_id` eq
 
 ### Caching
 
-Results are stored in Tampermonkey/Violentmonkey storage (`gs_steam_cache_v5`):
-
-| Result | TTL |
-|--------|-----|
-| Game found | 6 hours |
-| Game not found (negative cache) | 24 hours |
+Results are stored in Tampermonkey/Violentmonkey storage (`gs_steam_cache_v5`). TTL is configurable in the settings panel (default **6 hours** for both found and not-found results; `0` disables caching). Use **Clear cache** in settings to drop all stored lookups.
 
 Duplicate in-flight requests for the same App ID are deduplicated.
+
+### Settings
+
+Open **GameStatus** in the Steam header (or the userscript manager menu) to configure:
+
+| Setting | Default | Notes |
+|---------|---------|--------|
+| Badge position (vertical / horizontal) | Top / Left | Card badges only; game-page chips stay in the header |
+| Show “not in database” badges | On | When off, unmatched cards stay unmarked |
+| Cache duration (hours) | 6 | Applies to all cached lookups; max 168 (7 days) |
+| Clear cache | — | Immediate; does not require Save |
 
 ### Dynamic content
 

@@ -5,6 +5,18 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0] - 2026-07-12
+
+### Added
+
+- Settings button in the Steam header (same style as Region Block Bypass) and a userscript manager menu command
+- Settings panel: badge position (vertical + horizontal), show/hide “not in database” badges, cache duration (hours), and clear cache
+- Settings are stored in `gs_steam_settings` and localized in all supported UI languages
+
+### Changed
+
+- Cache TTL is configurable (default remains 6 hours for all lookups, including not-found); set to 0 to disable caching
+
 ## [1.3.2] - 2026-07-12
 
 ### Fixed

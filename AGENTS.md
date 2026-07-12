@@ -32,8 +32,9 @@ steam-gamestatus/
 2. Lazy-load via `IntersectionObserver`; re-scan dynamic Steam content with a filtered `MutationObserver`.
 3. Resolve GameStatus slugs from URL segments, titles, and canonical/OG URLs — **not** by Steam App ID alone. When the DOM has no slug/title (e.g. Personal Calendar `/app/{id}?…`), fetch the Steam Store `appdetails` name and slugify it.
 4. Fetch `GET https://gamestatus.info/back/api/gameinfo/game/{slug}/` via `GM_xmlhttpRequest`; match `steam_prod_id`.
-5. Cache in `GM_getValue` / `GM_setValue` (`gs_steam_cache_v5`).
+5. Cache in `GM_getValue` / `GM_setValue` (`gs_steam_cache_v5`); TTL from settings (`gs_steam_settings`).
 6. Render Steam-like badges + dark tooltips; UI strings from `TRANSLATIONS` / browser locale.
+7. Settings button in `#global_actions` (Steam header) + `GM_registerMenuCommand` — badge position, show missing, cache hours, clear cache.
 
 Keep rate limits polite: `MAX_CONCURRENT`, `REQUEST_DELAY_MS`, slug attempt caps, scroll-idle hydration batches.
 
