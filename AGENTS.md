@@ -34,7 +34,7 @@ steam-gamestatus/
 4. Fetch `GET https://gamestatus.info/back/api/gameinfo/game/{slug}/` via `GM_xmlhttpRequest`; match `steam_prod_id`.
 5. Cache in `GM_getValue` / `GM_setValue` (`gs_steam_cache_v5`); TTL from settings (`gs_steam_settings`).
 6. Render Steam-like badges + dark Steam-style popovers (chips, colored scores, cover); UI strings from `TRANSLATIONS` / browser locale.
-7. Settings button in `#global_actions` (Steam header) + `GM_registerMenuCommand` — badge position, show missing, cache hours, clear cache.
+7. Settings button in `#global_actions` (Steam header) + `GM_registerMenuCommand` — badge position, badge size, show missing, cache hours, clear cache.
 
 Keep rate limits polite: `MAX_CONCURRENT`, `REQUEST_DELAY_MS`, slug attempt caps, scroll-idle hydration batches.
 

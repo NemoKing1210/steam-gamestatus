@@ -2,7 +2,7 @@
 
 [![Install userscript](https://img.shields.io/badge/Install-userscript-66c0f4?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/steam-gamestatus/main/steam-gamestatus.user.js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.4.0-green?style=for-the-badge)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.4.3-green?style=for-the-badge)](CHANGELOG.md)
 
 A userscript for the Steam store and Steam Community that adds extra game information from [GameStatus.info](https://gamestatus.info) — protection, release dates, scores, hardware specs, and more.
 
@@ -54,7 +54,7 @@ Managers compare the installed `@version` with the remote metadata to decide whe
 
 ## Features
 
-- **Settings panel** — header button to set badge position, cache duration, clear cache, and whether to show “not in database” badges
+- **Settings panel** — header button to set badge position, badge size, cache duration, clear cache, and whether to show “not in database” badges
 - **Status badges on game cards** — store home, search results, wishlists, sale pages, and other listings with `/app/{id}` links
 - **Status badge on game pages** — compact status chip in `.apphub_OtherSiteInfo` next to Community Hub / Store Page links
 - **Rich tooltips** — Steam-like popovers with cover art, status chips, colored scores, and hardware details
@@ -154,6 +154,7 @@ Open **GameStatus** in the Steam header (or the userscript manager menu) to conf
 | Setting | Default | Notes |
 |---------|---------|--------|
 | Badge position (vertical / horizontal) | Top / Left | Card badges only; game-page chips stay in the header |
+| Badge size | Medium | Small / Medium / Large / Very large; card badges only |
 | Show “not in database” badges | On | When off, unmatched cards stay unmarked |
 | Cache duration (hours) | 6 | Applies to all cached lookups; max 168 (7 days) |
 | Clear cache | — | Immediate; does not require Save |

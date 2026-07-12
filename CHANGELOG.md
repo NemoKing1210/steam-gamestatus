@@ -5,6 +5,27 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.3] - 2026-07-13
+
+### Added
+
+- Settings: card badge size — Small / Medium / Large / Very large (default Medium; game page header chip unchanged)
+
+## [1.4.2] - 2026-07-13
+
+### Changed
+
+- Card badges (listings, charts, recommendation widgets) are ~20% larger; the game page header badge is unchanged
+
+## [1.4.1] - 2026-07-13
+
+### Fixed
+
+- Game pages now scan recommendation / similar-game cards (e.g. SteamPeek), not only the header badge
+- Capsules that put the wrong app id in `data-ds-appid` while linking to another `/app/{id}/` (SteamPeek) resolve and badge by the href App ID
+- Image alts ending in “banner” / “capsule” / “header” are cleaned before slug lookup
+- Page canonical/OG URL slugs are used only when resolving the current game, not sibling recommendation cards
+
 ## [1.4.0] - 2026-07-12
 
 ### Added

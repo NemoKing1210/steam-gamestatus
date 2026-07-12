@@ -10,7 +10,7 @@
 // @name:ko           Steam GameStatus
 // @name:pl           Steam GameStatus
 // @namespace         https://github.com/NemoKing1210/steam-gamestatus
-// @version           1.4.0
+// @version           1.4.3
 // @description       Adds extra game info from gamestatus.info on Steam store cards and game pages
 // @description:ru    Добавляет доп. информацию с gamestatus.info на карточки Steam и страницы игр
 // @description:zh-CN 在 Steam 商店卡片和游戏页面显示来自 gamestatus.info 的额外游戏信息
@@ -56,6 +56,7 @@
       cacheHours: 6,
       badgeVertical: 'top',
       badgeHorizontal: 'left',
+      badgeSize: 'medium',
       showMissingBadge: true,
     };
     const MAX_CONCURRENT = 2;
@@ -114,6 +115,12 @@
         posLeft: 'Left',
         posRight: 'Right',
         badgePositionHint: 'Applies to badges on store cards. Game page chips stay in the header.',
+        badgeSize: 'Size on cards',
+        sizeSmall: 'Small',
+        sizeMedium: 'Medium',
+        sizeLarge: 'Large',
+        sizeXLarge: 'Very large',
+        badgeSizeHint: 'Applies to badges on store cards. Game page chips stay the same size.',
         showMissing: 'Show “not in database” badges',
         showMissingHint: 'When off, cards without a GameStatus match stay unmarked.',
         on: 'ON',
@@ -168,6 +175,12 @@
         posLeft: 'Слева',
         posRight: 'Справа',
         badgePositionHint: 'Для бейджей на карточках магазина. На странице игры чип остаётся в шапке.',
+        badgeSize: 'Размер на карточках',
+        sizeSmall: 'Маленький',
+        sizeMedium: 'Средний',
+        sizeLarge: 'Большой',
+        sizeXLarge: 'Очень большой',
+        badgeSizeHint: 'Для бейджей на карточках магазина. На странице игры размер чипа не меняется.',
         showMissing: 'Показывать «нет в базе»',
         showMissingHint: 'Если выключено, карточки без записи в GameStatus остаются без бейджа.',
         on: 'ВКЛ',
@@ -222,6 +235,12 @@
         posLeft: '左侧',
         posRight: '右侧',
         badgePositionHint: '适用于商店卡片上的徽章。游戏页徽章仍在页头。',
+        badgeSize: '卡片上的大小',
+        sizeSmall: '小',
+        sizeMedium: '中',
+        sizeLarge: '大',
+        sizeXLarge: '特大',
+        badgeSizeHint: '适用于商店卡片上的徽章。游戏页徽章大小不变。',
         showMissing: '显示“未收录”徽章',
         showMissingHint: '关闭后，未在 GameStatus 找到的游戏不显示徽章。',
         on: '开',
@@ -275,6 +294,12 @@
         posLeft: 'Izquierda',
         posRight: 'Derecha',
         badgePositionHint: 'Aplica a insignias en cartas de la tienda. En la página del juego permanece en la cabecera.',
+        badgeSize: 'Tamaño en las tarjetas',
+        sizeSmall: 'Pequeño',
+        sizeMedium: 'Mediano',
+        sizeLarge: 'Grande',
+        sizeXLarge: 'Muy grande',
+        badgeSizeHint: 'Aplica a las insignias en las tarjetas de la tienda. En la página del juego el tamaño no cambia.',
         showMissing: 'Mostrar “no está en la base”',
         showMissingHint: 'Si está desactivado, las cartas sin coincidencia en GameStatus quedan sin insignia.',
         on: 'ON',
@@ -329,6 +354,12 @@
         posLeft: 'Esquerda',
         posRight: 'Direita',
         badgePositionHint: 'Aplica-se a emblemas nos cards da loja. Na página do jogo permanece no cabeçalho.',
+        badgeSize: 'Tamanho nos cards',
+        sizeSmall: 'Pequeno',
+        sizeMedium: 'Médio',
+        sizeLarge: 'Grande',
+        sizeXLarge: 'Muito grande',
+        badgeSizeHint: 'Aplica-se às badges nos cards da loja. Na página do jogo o tamanho não muda.',
         showMissing: 'Mostrar “não está no banco”',
         showMissingHint: 'Se desativado, cards sem correspondência no GameStatus ficam sem emblema.',
         on: 'ON',
@@ -383,6 +414,12 @@
         posLeft: 'Links',
         posRight: 'Rechts',
         badgePositionHint: 'Gilt für Badges auf Store-Karten. Auf der Spielseite bleibt der Chip in der Kopfzeile.',
+        badgeSize: 'Größe auf Karten',
+        sizeSmall: 'Klein',
+        sizeMedium: 'Mittel',
+        sizeLarge: 'Groß',
+        sizeXLarge: 'Sehr groß',
+        badgeSizeHint: 'Gilt für Badges auf Store-Karten. Auf der Spieleseite bleibt die Größe unverändert.',
         showMissing: '„Nicht in der Datenbank“ anzeigen',
         showMissingHint: 'Wenn aus, bleiben Karten ohne GameStatus-Treffer ohne Badge.',
         on: 'AN',
@@ -437,6 +474,12 @@
         posLeft: 'Gauche',
         posRight: 'Droite',
         badgePositionHint: 'S’applique aux badges des cartes boutique. Sur la page jeu, le chip reste dans l’en-tête.',
+        badgeSize: 'Taille sur les cartes',
+        sizeSmall: 'Petit',
+        sizeMedium: 'Moyen',
+        sizeLarge: 'Grand',
+        sizeXLarge: 'Très grand',
+        badgeSizeHint: 'S’applique aux badges des cartes du magasin. Sur la page du jeu, la taille ne change pas.',
         showMissing: 'Afficher « absent de la base »',
         showMissingHint: 'Si désactivé, les cartes sans correspondance GameStatus restent sans badge.',
         on: 'ON',
@@ -491,6 +534,12 @@
         posLeft: '左',
         posRight: '右',
         badgePositionHint: 'ストアカードのバッジに適用。ゲームページのチップはヘッダーのままです。',
+        badgeSize: 'カード上のサイズ',
+        sizeSmall: '小',
+        sizeMedium: '中',
+        sizeLarge: '大',
+        sizeXLarge: '特大',
+        badgeSizeHint: 'ストアカードのバッジに適用されます。ゲームページのチップサイズは変わりません。',
         showMissing: '「未登録」バッジを表示',
         showMissingHint: 'オフにすると、GameStatus にないゲームはバッジなしのままになります。',
         on: 'ON',
@@ -545,6 +594,12 @@
         posLeft: '왼쪽',
         posRight: '오른쪽',
         badgePositionHint: '스토어 카드 배지에 적용됩니다. 게임 페이지 칩은 헤더에 유지됩니다.',
+        badgeSize: '카드 크기',
+        sizeSmall: '작게',
+        sizeMedium: '보통',
+        sizeLarge: '크게',
+        sizeXLarge: '매우 크게',
+        badgeSizeHint: '스토어 카드 배지에 적용됩니다. 게임 페이지 칩 크기는 그대로입니다.',
         showMissing: '“데이터베이스에 없음” 표시',
         showMissingHint: '끄면 GameStatus에 없는 게임은 배지 없이 남습니다.',
         on: 'ON',
@@ -599,6 +654,12 @@
         posLeft: 'Lewo',
         posRight: 'Prawo',
         badgePositionHint: 'Dotyczy odznak na kartach sklepu. Na stronie gry chip zostaje w nagłówku.',
+        badgeSize: 'Rozmiar na kartach',
+        sizeSmall: 'Mały',
+        sizeMedium: 'Średni',
+        sizeLarge: 'Duży',
+        sizeXLarge: 'Bardzo duży',
+        badgeSizeHint: 'Dotyczy odznak na kartach sklepu. Na stronie gry rozmiar chipa się nie zmienia.',
         showMissing: 'Pokazuj „brak w bazie”',
         showMissingHint: 'Gdy wyłączone, karty bez dopasowania w GameStatus pozostają bez odznaki.',
         on: 'WŁ',
@@ -655,6 +716,11 @@
       return value === 'right' ? 'right' : 'left';
     }
 
+    function normalizeBadgeSize(value) {
+      if (value === 'small' || value === 'large' || value === 'xlarge') return value;
+      return 'medium';
+    }
+
     function loadSettings() {
       const raw = GM_getValue(SETTINGS_KEY, null);
       if (!raw || typeof raw !== 'object') return { ...DEFAULT_SETTINGS };
@@ -664,6 +730,7 @@
         cacheHours: normalizeCacheHours(raw.cacheHours),
         badgeVertical: normalizeBadgeVertical(raw.badgeVertical),
         badgeHorizontal: normalizeBadgeHorizontal(raw.badgeHorizontal),
+        badgeSize: normalizeBadgeSize(raw.badgeSize),
         showMissingBadge: raw.showMissingBadge !== false,
       };
     }
@@ -675,13 +742,14 @@
         cacheHours: normalizeCacheHours(next.cacheHours ?? settings.cacheHours),
         badgeVertical: normalizeBadgeVertical(next.badgeVertical ?? settings.badgeVertical),
         badgeHorizontal: normalizeBadgeHorizontal(next.badgeHorizontal ?? settings.badgeHorizontal),
+        badgeSize: normalizeBadgeSize(next.badgeSize ?? settings.badgeSize),
         showMissingBadge:
           typeof next.showMissingBadge === 'boolean'
             ? next.showMissingBadge
             : settings.showMissingBadge !== false,
       };
       GM_setValue(SETTINGS_KEY, settings);
-      applyBadgePosition();
+      applyBadgeAppearance();
       updateSettingsButtonState();
     }
 
@@ -690,12 +758,30 @@
       return hours > 0 ? hours * 60 * 60 * 1000 : 0;
     }
 
-    function applyBadgePosition() {
+    function applyBadgeAppearance() {
       const root = document.documentElement;
-      root.classList.remove('gs-badge-v-top', 'gs-badge-v-bottom', 'gs-badge-h-left', 'gs-badge-h-right');
+      root.classList.remove(
+        'gs-badge-v-top',
+        'gs-badge-v-bottom',
+        'gs-badge-h-left',
+        'gs-badge-h-right',
+        'gs-badge-size-sm',
+        'gs-badge-size-md',
+        'gs-badge-size-lg',
+        'gs-badge-size-xl'
+      );
+      const sizeClass =
+        settings.badgeSize === 'small'
+          ? 'gs-badge-size-sm'
+          : settings.badgeSize === 'large'
+            ? 'gs-badge-size-lg'
+            : settings.badgeSize === 'xlarge'
+              ? 'gs-badge-size-xl'
+              : 'gs-badge-size-md';
       root.classList.add(
         settings.badgeVertical === 'bottom' ? 'gs-badge-v-bottom' : 'gs-badge-v-top',
-        settings.badgeHorizontal === 'right' ? 'gs-badge-h-right' : 'gs-badge-h-left'
+        settings.badgeHorizontal === 'right' ? 'gs-badge-h-right' : 'gs-badge-h-left',
+        sizeClass
       );
     }
 
@@ -742,6 +828,54 @@
     };
   
     GM_addStyle(`
+      html.gs-badge-size-sm {
+        --gs-card-badge-font: 11px;
+        --gs-card-badge-lh: 19px;
+        --gs-card-badge-gap: 5px;
+        --gs-card-badge-pad-x: 7px;
+        --gs-card-badge-dot: 4px;
+        --gs-card-badge-loading-dot: 10px;
+        --gs-chart-badge-font: 10px;
+        --gs-chart-badge-lh: 16px;
+        --gs-chart-badge-pad-x: 6px;
+      }
+
+      html.gs-badge-size-md {
+        --gs-card-badge-font: 13px;
+        --gs-card-badge-lh: 23px;
+        --gs-card-badge-gap: 6px;
+        --gs-card-badge-pad-x: 9px;
+        --gs-card-badge-dot: 5px;
+        --gs-card-badge-loading-dot: 12px;
+        --gs-chart-badge-font: 12px;
+        --gs-chart-badge-lh: 19px;
+        --gs-chart-badge-pad-x: 7px;
+      }
+
+      html.gs-badge-size-lg {
+        --gs-card-badge-font: 15px;
+        --gs-card-badge-lh: 26px;
+        --gs-card-badge-gap: 7px;
+        --gs-card-badge-pad-x: 10px;
+        --gs-card-badge-dot: 6px;
+        --gs-card-badge-loading-dot: 14px;
+        --gs-chart-badge-font: 14px;
+        --gs-chart-badge-lh: 22px;
+        --gs-chart-badge-pad-x: 8px;
+      }
+
+      html.gs-badge-size-xl {
+        --gs-card-badge-font: 17px;
+        --gs-card-badge-lh: 29px;
+        --gs-card-badge-gap: 8px;
+        --gs-card-badge-pad-x: 12px;
+        --gs-card-badge-dot: 7px;
+        --gs-card-badge-loading-dot: 16px;
+        --gs-chart-badge-font: 16px;
+        --gs-chart-badge-lh: 25px;
+        --gs-chart-badge-pad-x: 10px;
+      }
+
       .${BADGE_CLASS} {
         --gs-accent: #67c1f5;
         --gs-bg: #384959;
@@ -755,14 +889,14 @@
         z-index: 100;
         display: inline-flex;
         align-items: center;
-        gap: 5px;
+        gap: var(--gs-card-badge-gap, 6px);
         max-width: calc(100% - 16px);
-        padding: 0 7px;
+        padding: 0 var(--gs-card-badge-pad-x, 9px);
         border-radius: 3px;
         border: none;
         background: var(--gs-bg);
         color: var(--gs-text);
-        font: 500 11px/19px "Motiva Sans", Arial, sans-serif;
+        font: 500 var(--gs-card-badge-font, 13px)/var(--gs-card-badge-lh, 23px) "Motiva Sans", Arial, sans-serif;
         text-decoration: none;
         box-shadow: 1px 1px 0 0 #000000;
         pointer-events: auto;
@@ -793,8 +927,8 @@
       }
 
       .${BADGE_CLASS}__dot {
-        width: 4px;
-        height: 4px;
+        width: var(--gs-card-badge-dot, 5px);
+        height: var(--gs-card-badge-dot, 5px);
         border-radius: 50%;
         flex: 0 0 auto;
         background: var(--gs-accent);
@@ -812,8 +946,8 @@
       }
 
       .${BADGE_CLASS}--loading .${BADGE_CLASS}__dot {
-        width: 10px;
-        height: 10px;
+        width: var(--gs-card-badge-loading-dot, 12px);
+        height: var(--gs-card-badge-loading-dot, 12px);
         border: 2px solid rgba(103, 193, 245, 0.25);
         border-top-color: #67c1f5;
         background: transparent;
@@ -871,9 +1005,9 @@
         max-width: 100%;
         white-space: normal;
         box-shadow: none;
-        font-size: 10px;
-        line-height: 16px;
-        padding: 0 6px;
+        font-size: var(--gs-chart-badge-font, 12px);
+        line-height: var(--gs-chart-badge-lh, 19px);
+        padding: 0 var(--gs-chart-badge-pad-x, 7px);
       }
 
       /* Featured carousel: slides share the same coordinates — show badge only on focus */
@@ -1763,6 +1897,14 @@
       return numericParts / segments.length <= 0.5;
     }
   
+    function normalizeImageAltTitle(alt) {
+      return String(alt || '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .replace(/\s+(banner|capsule|header|poster|logo)$/i, '')
+        .trim();
+    }
+
     function getCardTitle(card, link) {
       const sources = [];
 
@@ -1779,7 +1921,7 @@
 
       if (isDsAppCapsule(card)) {
         const capsuleLink = link || getCardLink(card);
-        add(card.querySelector('img[alt]')?.alt);
+        add(normalizeImageAltTitle(card.querySelector('img[alt]')?.alt));
         const slugFromCapsule = extractSlugFromHref(capsuleLink?.href);
         if (slugFromCapsule && isValidSlug(slugFromCapsule)) {
           add(slugFromCapsule.replace(/-/g, ' '));
@@ -1787,9 +1929,11 @@
       }
   
       add(
-        card.querySelector(
-          'img.sale_capsule_image[alt], img.tab_row_capsule[alt], img[class*="capsule"][alt], img[alt]'
-        )?.alt
+        normalizeImageAltTitle(
+          card.querySelector(
+            'img.sale_capsule_image[alt], img.tab_row_capsule[alt], img[class*="capsule"][alt], img[alt]'
+          )?.alt
+        )
       );
   
       const ariaLabel = link?.getAttribute('aria-label')?.trim();
@@ -1836,13 +1980,14 @@
       };
   
       addFromHref(link?.href);
-  
-      if (isGamePage()) {
+
+      // Only for the page's own game — not recommendation cards on the same page
+      if (isGamePage() && String(appId) === String(getPageAppId())) {
         addFromHref(location.pathname);
         addFromHref(document.querySelector('link[rel="canonical"]')?.href);
         addFromHref(document.querySelector('meta[property="og:url"]')?.content);
       }
-  
+
       addFromText(title);
   
       return candidates;
@@ -2552,6 +2697,13 @@
 
     function getCardAppId(card) {
       if (!card) return null;
+
+      // Prefer href on <a /app/{id}/> — SteamPeek (and similar) put the page app id in data-ds-appid
+      if (card instanceof HTMLAnchorElement) {
+        const fromHref = extractAppIdFromHref(card.href);
+        if (fromHref) return fromHref;
+      }
+
       const fromAttr = card.getAttribute('data-ds-appid') || card.dataset.dsAppid;
       if (fromAttr) return fromAttr;
 
@@ -2584,6 +2736,11 @@
       const appId = extractAppIdFromHref(link.href);
       if (!appId) return null;
 
+      // Link itself is the capsule; href wins when data-ds-appid mismatches (SteamPeek)
+      if (link.hasAttribute('data-ds-appid')) {
+        return link;
+      }
+
       const inner =
         link.querySelector(`[data-ds-appid="${appId}"]`) || link.querySelector('[data-ds-appid]');
       if (inner) {
@@ -2607,6 +2764,8 @@
 
       const appId = extractAppIdFromHref(link.href);
       if (!appId) return;
+      // Game page header badge is handled separately — skip same-app capsules
+      if (isGamePage() && appId === getPageAppId()) return;
 
       const card = findCardContainer(link);
       if (!card || card.closest('.apphub_AppName, .game_area_purchase, #game_highlights')) return;
@@ -3103,8 +3262,6 @@
     function runScan() {
       if (isGamePage()) {
         renderGamePage();
-        pendingScanNodes.length = 0;
-        return;
       }
 
       if (!hasInitialScan) {
@@ -3196,6 +3353,7 @@
         settings.cacheHours !== DEFAULT_SETTINGS.cacheHours ||
         settings.badgeVertical !== DEFAULT_SETTINGS.badgeVertical ||
         settings.badgeHorizontal !== DEFAULT_SETTINGS.badgeHorizontal ||
+        settings.badgeSize !== DEFAULT_SETTINGS.badgeSize ||
         settings.showMissingBadge !== DEFAULT_SETTINGS.showMissingBadge;
       if (dot) {
         dot.classList.toggle('is-on', customized);
@@ -3241,6 +3399,16 @@
             </div>
           </div>
           <p class="gs-hint">${escapeHtml(t('badgePositionHint'))}</p>
+          <label class="gs-field">
+            <span class="gs-field__label">${escapeHtml(t('badgeSize'))}</span>
+            <select id="gs-badge-size">
+              <option value="small">${escapeHtml(t('sizeSmall'))}</option>
+              <option value="medium">${escapeHtml(t('sizeMedium'))}</option>
+              <option value="large">${escapeHtml(t('sizeLarge'))}</option>
+              <option value="xlarge">${escapeHtml(t('sizeXLarge'))}</option>
+            </select>
+          </label>
+          <p class="gs-hint">${escapeHtml(t('badgeSizeHint'))}</p>
         </div>
 
         <div class="gs-panel__section gs-panel__section--row">
@@ -3329,6 +3497,7 @@
       if (!panel) return;
       panel.querySelector('#gs-badge-vertical').value = normalizeBadgeVertical(settings.badgeVertical);
       panel.querySelector('#gs-badge-horizontal').value = normalizeBadgeHorizontal(settings.badgeHorizontal);
+      panel.querySelector('#gs-badge-size').value = normalizeBadgeSize(settings.badgeSize);
       panel.querySelector('#gs-show-missing').checked = settings.showMissingBadge !== false;
       panel.querySelector('#gs-cache-hours').value = String(normalizeCacheHours(settings.cacheHours));
       const status = panel.querySelector('#gs-cache-status');
@@ -3342,6 +3511,7 @@
       saveSettings({
         badgeVertical: panel.querySelector('#gs-badge-vertical').value,
         badgeHorizontal: panel.querySelector('#gs-badge-horizontal').value,
+        badgeSize: panel.querySelector('#gs-badge-size').value,
         showMissingBadge: panel.querySelector('#gs-show-missing').checked,
         cacheHours: normalizeCacheHours(panel.querySelector('#gs-cache-hours').value),
       });
@@ -3379,7 +3549,7 @@
     }
 
     function init() {
-      applyBadgePosition();
+      applyBadgeAppearance();
       loadMemoryCache();
       setupScrollListener();
       window.addEventListener('pagehide', persistCacheNow);
