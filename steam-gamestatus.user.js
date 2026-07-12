@@ -10,7 +10,7 @@
 // @name:ko           Steam GameStatus
 // @name:pl           Steam GameStatus
 // @namespace         https://github.com/NemoKing1210/steam-gamestatus
-// @version           1.4.3
+// @version           1.4.7
 // @description       Adds extra game info from gamestatus.info on Steam store cards and game pages
 // @description:ru    Добавляет доп. информацию с gamestatus.info на карточки Steam и страницы игр
 // @description:zh-CN 在 Steam 商店卡片和游戏页面显示来自 gamestatus.info 的额外游戏信息
@@ -49,6 +49,7 @@
     const API_BASE = 'https://gamestatus.info/back/api/gameinfo/game';
     const SITE_BASE = 'https://gamestatus.info';
     const DONATE_URL = `${SITE_BASE}/#donate`;
+    const REPO_URL = 'https://github.com/NemoKing1210/steam-gamestatus';
     const CACHE_KEY = 'gs_steam_cache_v5';
     const SETTINGS_KEY = 'gs_steam_settings';
     const CACHE_HOURS_MAX = 168;
@@ -132,6 +133,8 @@
         cacheCleared: 'Cache cleared ({count})',
         cacheEmpty: 'Cache is empty',
         cacheClearHint: 'Removes all stored GameStatus lookups from this browser profile.',
+        repoLink: 'GitHub',
+        repoAbout: 'Source code, updates, and issue reports',
       },
       ru: {
         notInDatabase: 'Нет в базе',
@@ -192,6 +195,8 @@
         cacheCleared: 'Кеш очищен ({count})',
         cacheEmpty: 'Кеш пуст',
         cacheClearHint: 'Удаляет все сохранённые ответы GameStatus в этом профиле браузера.',
+        repoLink: 'GitHub',
+        repoAbout: 'Исходный код, обновления и сообщения об ошибках',
       },
       zh: {
         notInDatabase: '未收录',
@@ -251,6 +256,8 @@
         cacheCleared: '已清空缓存（{count}）',
         cacheEmpty: '缓存为空',
         cacheClearHint: '删除此浏览器配置中保存的全部 GameStatus 查询结果。',
+        repoLink: 'GitHub',
+        repoAbout: '源代码、更新与问题反馈',
       },
       es: {
         notInDatabase: 'No está en la base de datos',
@@ -311,6 +318,8 @@
         cacheCleared: 'Caché vaciada ({count})',
         cacheEmpty: 'La caché está vacía',
         cacheClearHint: 'Elimina todas las consultas de GameStatus guardadas en este perfil del navegador.',
+        repoLink: 'GitHub',
+        repoAbout: 'Código fuente, actualizaciones e informes de errores',
       },
       pt: {
         notInDatabase: 'Não está no banco de dados',
@@ -371,6 +380,8 @@
         cacheCleared: 'Cache limpo ({count})',
         cacheEmpty: 'O cache está vazio',
         cacheClearHint: 'Remove todas as consultas do GameStatus salvas neste perfil do navegador.',
+        repoLink: 'GitHub',
+        repoAbout: 'Código-fonte, atualizações e relatos de problemas',
       },
       de: {
         notInDatabase: 'Nicht in der Datenbank',
@@ -431,6 +442,8 @@
         cacheCleared: 'Cache geleert ({count})',
         cacheEmpty: 'Cache ist leer',
         cacheClearHint: 'Entfernt alle gespeicherten GameStatus-Abfragen in diesem Browserprofil.',
+        repoLink: 'GitHub',
+        repoAbout: 'Quellcode, Updates und Fehlerberichte',
       },
       fr: {
         notInDatabase: 'Absent de la base',
@@ -491,6 +504,8 @@
         cacheCleared: 'Cache vidé ({count})',
         cacheEmpty: 'Le cache est vide',
         cacheClearHint: 'Supprime toutes les requêtes GameStatus enregistrées dans ce profil navigateur.',
+        repoLink: 'GitHub',
+        repoAbout: 'Code source, mises à jour et signalements',
       },
       ja: {
         notInDatabase: 'データベースに未登録',
@@ -551,6 +566,8 @@
         cacheCleared: 'キャッシュをクリアしました（{count}）',
         cacheEmpty: 'キャッシュは空です',
         cacheClearHint: 'このブラウザプロファイルに保存された GameStatus の結果をすべて削除します。',
+        repoLink: 'GitHub',
+        repoAbout: 'ソースコード・更新・不具合報告',
       },
       ko: {
         notInDatabase: '데이터베이스에 없음',
@@ -611,6 +628,8 @@
         cacheCleared: '캐시를 비웠습니다 ({count})',
         cacheEmpty: '캐시가 비어 있습니다',
         cacheClearHint: '이 브라우저 프로필에 저장된 모든 GameStatus 조회를 삭제합니다.',
+        repoLink: 'GitHub',
+        repoAbout: '소스 코드, 업데이트 및 문제 제보',
       },
       pl: {
         notInDatabase: 'Brak w bazie',
@@ -671,6 +690,8 @@
         cacheCleared: 'Cache wyczyszczony ({count})',
         cacheEmpty: 'Cache jest pusty',
         cacheClearHint: 'Usuwa wszystkie zapisane zapytania GameStatus w tym profilu przeglądarki.',
+        repoLink: 'GitHub',
+        repoAbout: 'Kod źródłowy, aktualizacje i zgłoszenia błędów',
       },
     };
 
@@ -1031,63 +1052,38 @@
         top: auto;
         left: auto;
         z-index: auto;
-        display: inline-block;
+        display: inline-flex;
         vertical-align: top;
+        align-items: center;
         margin: 0;
-        padding: 1px;
         max-width: none;
-        box-shadow: none;
+        gap: 8px;
+        padding: 0 15px;
+        border-radius: 3px;
         border: none;
-        border-radius: 2px;
-        background: rgba(103, 193, 245, 0.2);
-        color: #67c1f5 !important;
-        text-decoration: none !important;
-        font: inherit;
-        overflow: visible;
+        background: var(--gs-bg);
+        color: var(--gs-text);
+        font: 500 15px/30px "Motiva Sans", Arial, sans-serif;
+        text-decoration: none;
+        box-shadow: 1px 1px 0 0 #000000;
+        overflow: hidden;
         white-space: nowrap;
-        gap: 0;
+        text-overflow: ellipsis;
         cursor: pointer;
       }
 
+      .${BADGE_CLASS}--page:hover,
       a.${BADGE_CLASS}.${BADGE_CLASS}--page:hover,
       span.${BADGE_CLASS}.${BADGE_CLASS}--page:hover {
-        color: #fff !important;
-        background: linear-gradient(-60deg, #417a9b 5%, #67c1f5 95%);
+        background: #4a5d70;
+        color: #e3eaef;
+        text-decoration: none;
       }
 
-      .${BADGE_CLASS}--page > span,
-      a.${BADGE_CLASS}.${BADGE_CLASS}--page > span,
-      span.${BADGE_CLASS}.${BADGE_CLASS}--page > span {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        border-radius: 2px;
-        background: transparent;
-        padding: 0 15px;
-        font: normal 15px/30px "Motiva Sans", Sans-serif;
-        color: inherit;
-      }
-
-      .${BADGE_CLASS}--page.${BADGE_CLASS}--cracked,
-      .${BADGE_CLASS}--page.${BADGE_CLASS}--bypass,
-      .${BADGE_CLASS}--page.${BADGE_CLASS}--not-cracked-recent,
-      .${BADGE_CLASS}--page.${BADGE_CLASS}--not-cracked-old,
-      .${BADGE_CLASS}--page.${BADGE_CLASS}--release-today,
-      .${BADGE_CLASS}--page.${BADGE_CLASS}--unknown,
-      .${BADGE_CLASS}--page.${BADGE_CLASS}--missing {
-        --gs-bg: rgba(103, 193, 245, 0.2);
-        --gs-text: #67c1f5;
-      }
-
-      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--cracked:hover,
-      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--bypass:hover,
-      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--not-cracked-recent:hover,
-      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--not-cracked-old:hover,
-      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--release-today:hover,
-      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--unknown:hover,
-      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--missing:hover {
-        background: linear-gradient(-60deg, #417a9b 5%, #67c1f5 95%);
-        color: #fff !important;
+      .${BADGE_CLASS}--page.${BADGE_CLASS}--cracked:hover,
+      a.${BADGE_CLASS}.${BADGE_CLASS}--page.${BADGE_CLASS}--cracked:hover {
+        background: #5a7f28;
+        color: #d4f54a;
       }
 
       .${BADGE_CLASS}--page .${BADGE_CLASS}__dot {
@@ -1097,9 +1093,8 @@
       }
 
       .${BADGE_CLASS}--page .${BADGE_CLASS}__label {
-        color: inherit;
-        overflow: visible;
-        text-overflow: clip;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
 
       .${BADGE_CLASS}--page.${BADGE_CLASS}--loading {
@@ -1108,8 +1103,8 @@
       }
 
       .${BADGE_CLASS}--page.${BADGE_CLASS}--loading .${BADGE_CLASS}__dot {
-        width: 12px;
-        height: 12px;
+        width: 14px;
+        height: 14px;
       }
 
       .${BADGE_CLASS}__tooltip {
@@ -1393,29 +1388,35 @@
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-links a,
-      .${BADGE_CLASS}__tooltip .gs-tip-footer a {
+      .${BADGE_CLASS}__tooltip .gs-tip-footer-links a {
         color: #66c0f4;
         text-decoration: none;
         word-break: break-all;
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-links a:hover,
-      .${BADGE_CLASS}__tooltip .gs-tip-footer a:hover {
+      .${BADGE_CLASS}__tooltip .gs-tip-footer-links a:hover {
         color: #ffffff;
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-footer {
         display: flex;
-        align-items: center;
-        justify-content: space-between;
+        flex-direction: column;
         gap: 10px;
-        flex-wrap: wrap;
         margin-top: 10px;
         padding: 10px 12px;
         border-top: 1px solid #000;
         background: rgba(0, 0, 0, 0.22);
         font-size: 11px;
         color: #8f98a0;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-footer-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        flex-wrap: wrap;
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-footer-links {
@@ -1427,6 +1428,42 @@
 
       .${BADGE_CLASS}__tooltip .gs-tip-footer-sep {
         color: #4b5561;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-footer-divider {
+        height: 1px;
+        width: 100%;
+        background: linear-gradient(90deg, transparent, #000, transparent);
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-repo {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+        color: #8f98a0;
+        text-decoration: none;
+        word-break: normal;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-repo:hover {
+        color: #c7d5e0;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-repo:hover .gs-tip-repo-title {
+        color: #66c0f4;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-repo-title {
+        color: #67c1f5;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+
+      .${BADGE_CLASS}__tooltip .gs-tip-repo-desc {
+        font-size: 11px;
+        line-height: 1.3;
       }
 
       .${BADGE_CLASS}__tooltip .gs-tip-donate-btn {
@@ -1564,12 +1601,46 @@
       }
       .gs-panel__footer {
         display: flex;
-        justify-content: flex-end;
-        flex-wrap: wrap;
-        gap: 8px;
+        flex-direction: column;
+        gap: 10px;
         padding: 12px 14px 14px;
         border-top: 1px solid #000;
         background: rgba(0,0,0,.2);
+      }
+      .gs-panel__footer-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+      .gs-panel__footer-divider {
+        height: 1px;
+        width: 100%;
+        background: linear-gradient(90deg, transparent, #000, transparent);
+      }
+      .gs-panel__repo {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+        color: #8f98a0;
+        text-decoration: none;
+      }
+      .gs-panel__repo:hover {
+        color: #c7d5e0;
+      }
+      .gs-panel__repo:hover .gs-panel__repo-title {
+        color: #66c0f4;
+      }
+      .gs-panel__repo-title {
+        color: #67c1f5;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+      .gs-panel__repo-desc {
+        font-size: 11px;
+        line-height: 1.3;
       }
       .gs-field {
         display: flex;
@@ -2334,8 +2405,15 @@
 
       return `
         <div class="gs-tip-footer">
-          <a class="gs-tip-donate-btn" href="${escapeAttr(DONATE_URL)}" target="_blank" rel="noopener noreferrer"><span>${escapeHtml(t('supportProject'))}</span></a>
-          <div class="gs-tip-footer-links">${links.join('<span class="gs-tip-footer-sep">·</span>')}</div>
+          <div class="gs-tip-footer-top">
+            <a class="gs-tip-donate-btn" href="${escapeAttr(DONATE_URL)}" target="_blank" rel="noopener noreferrer"><span>${escapeHtml(t('supportProject'))}</span></a>
+            <div class="gs-tip-footer-links">${links.join('<span class="gs-tip-footer-sep">·</span>')}</div>
+          </div>
+          <div class="gs-tip-footer-divider" role="separator"></div>
+          <a class="gs-tip-repo" href="${escapeAttr(REPO_URL)}" target="_blank" rel="noopener noreferrer">
+            <span class="gs-tip-repo-title">${escapeHtml(t('repoLink'))}</span>
+            <span class="gs-tip-repo-desc">${escapeHtml(t('repoAbout'))}</span>
+          </a>
         </div>
       `;
     }
@@ -2542,14 +2620,10 @@
   
     function createLoaderBadge(isPage = false, isChart = false) {
       const badge = document.createElement('span');
-      const pageClasses = isPage ? ` btnv6_blue_hoverfade btn_medium ${BADGE_CLASS}--page` : '';
+      const pageClass = isPage ? ` ${BADGE_CLASS}--page` : '';
       const chartClass = isChart ? ` ${BADGE_CLASS}--chart` : '';
-      badge.className = `${BADGE_CLASS} ${BADGE_CLASS}--loading${pageClasses}${chartClass}`;
-      if (isPage) {
-        badge.innerHTML = `<span><span class="${BADGE_CLASS}__dot"></span><span class="${BADGE_CLASS}__label">${escapeHtml(t('loading'))}</span></span>`;
-      } else {
-        badge.innerHTML = `<span class="${BADGE_CLASS}__dot"></span><span class="${BADGE_CLASS}__label">${escapeHtml(t('loading'))}</span>`;
-      }
+      badge.className = `${BADGE_CLASS} ${BADGE_CLASS}--loading${pageClass}${chartClass}`;
+      badge.innerHTML = `<span class="${BADGE_CLASS}__dot"></span><span class="${BADGE_CLASS}__label">${escapeHtml(t('loading'))}</span>`;
       return badge;
     }
 
@@ -2561,20 +2635,15 @@
       const href = game?.slug ? `${SITE_BASE}/${game.slug}` : SITE_BASE;
 
       const badge = document.createElement('a');
-      const pageClasses = isPage ? ` btnv6_blue_hoverfade btn_medium ${BADGE_CLASS}--page` : '';
+      const pageClass = isPage ? ` ${BADGE_CLASS}--page` : '';
       const chartClass = isChart ? ` ${BADGE_CLASS}--chart` : '';
-      badge.className = `${BADGE_CLASS} ${BADGE_CLASS}--${type}${pageClasses}${chartClass}`;
+      badge.className = `${BADGE_CLASS} ${BADGE_CLASS}--${type}${pageClass}${chartClass}`;
       badge.href = href;
       badge.target = '_blank';
       badge.rel = 'noopener noreferrer';
       badge.setAttribute('data-gs-processed', '1');
       badge.dataset.gsAppId = String(appId || game?.steam_prod_id || '');
-
-      if (isPage) {
-        badge.innerHTML = `<span><span class="${BADGE_CLASS}__dot"></span><span class="${BADGE_CLASS}__label">${escapeHtml(label)}</span></span>`;
-      } else {
-        badge.innerHTML = `<span class="${BADGE_CLASS}__dot"></span><span class="${BADGE_CLASS}__label">${escapeHtml(label)}</span>`;
-      }
+      badge.innerHTML = `<span class="${BADGE_CLASS}__dot"></span><span class="${BADGE_CLASS}__label">${escapeHtml(label)}</span>`;
 
       bindTooltip(badge, entry);
       return badge;
@@ -3440,9 +3509,16 @@
         </div>
 
         <div class="gs-panel__footer">
-          <button type="button" class="gs-btn gs-btn--ghost" data-gs="close">${escapeHtml(t('cancel'))}</button>
-          <button type="button" class="gs-btn" data-gs="save">${escapeHtml(t('save'))}</button>
-          <button type="button" class="gs-btn gs-btn--green" data-gs="save-run">${escapeHtml(t('saveReload'))}</button>
+          <div class="gs-panel__footer-actions">
+            <button type="button" class="gs-btn gs-btn--ghost" data-gs="close">${escapeHtml(t('cancel'))}</button>
+            <button type="button" class="gs-btn" data-gs="save">${escapeHtml(t('save'))}</button>
+            <button type="button" class="gs-btn gs-btn--green" data-gs="save-run">${escapeHtml(t('saveReload'))}</button>
+          </div>
+          <div class="gs-panel__footer-divider" role="separator"></div>
+          <a class="gs-panel__repo" href="${REPO_URL}" target="_blank" rel="noopener noreferrer">
+            <span class="gs-panel__repo-title">${escapeHtml(t('repoLink'))}</span>
+            <span class="gs-panel__repo-desc">${escapeHtml(t('repoAbout'))}</span>
+          </a>
         </div>
       `;
       document.body.appendChild(panel);

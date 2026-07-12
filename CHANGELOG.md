@@ -5,6 +5,30 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.7] - 2026-07-13
+
+### Added
+
+- Tooltip popover footer: GitHub repository link with description below donate/API links, separated by a divider
+
+## [1.4.6] - 2026-07-13
+
+### Changed
+
+- Settings footer: GitHub link moved below the action buttons, separated by a divider
+
+## [1.4.5] - 2026-07-13
+
+### Added
+
+- Settings panel footer link to the GitHub repository with a short localized description
+
+## [1.4.4] - 2026-07-13
+
+### Changed
+
+- Game page header badge uses the same solid Steam-tag style as card badges (status colors, shadow); size unchanged
+
 ## [1.4.3] - 2026-07-13
 
 ### Added
