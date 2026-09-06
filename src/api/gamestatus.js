@@ -16,13 +16,6 @@ export function isMatchingGame(data, appId) {
   return String(data.steam_prod_id) === String(appId);
 }
 
-export function getTriedUrls(entry) {
-  if (entry?.triedUrls?.length) return entry.triedUrls;
-  if (entry?.slugs?.length) return entry.slugs.map(buildApiUrl);
-  if (entry?.slug) return [buildApiUrl(entry.slug)];
-  return [];
-}
-
 export function requestJson(url) {
   const language = getApiLanguage();
   return new Promise((resolve, reject) => {

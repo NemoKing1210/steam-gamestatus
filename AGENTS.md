@@ -102,8 +102,8 @@ Single place for magic values. Notable entries:
   `REPO_URL`; `CACHE_KEY = 'gs_steam_cache_v5'`;
   `SETTINGS_KEY = 'gs_steam_settings'`.
 - `DEFAULT_SETTINGS`: `cacheHours: 6`, `badgeVertical: 'top'`,
-  `badgeHorizontal: 'left'`, `badgeSize: 'medium'`, `showMissingBadge: true`,
-  `language: 'auto'`.
+  `badgeHorizontal: 'left'`, `badgeSize: 'medium'`, `cardDisplay: 'badge'`,
+  `displayKey: 'ShiftLeft'`, `showMissingBadge: true`, `language: 'auto'`.
 - Throttle/shape timings: `MAX_CONCURRENT = 2`, `REQUEST_DELAY_MS = 75`,
   `MAX_SLUG_ATTEMPTS = 2`, `HYDRATE_BATCH_SIZE = 3`,
   `CARD_ROOT_MARGIN = '80px 0px'`, `SCAN_DEBOUNCE_MS = 450`,
@@ -208,8 +208,8 @@ Failures resolve to `null` — never throw into the resolution pipeline.
   both `cards` and `steam-dom` import it from here).
 - `isValidSlug()` + `INVALID_SLUG_RE`: rejects Steam-CDN/hosting slugs,
   wishlist/game-pass chrome, `gamestatus`, digit-only slugs, and slugs that
-  are >50% numeric segments. Extend the regex when new junk slugs appear in
-  tooltips' "Checked URLs" footers.
+  are >50% numeric segments. Extend the regex when new junk slugs appear
+  (attempted slugs persist as entry `triedUrls` in GM storage).
 
 ### `src/utils/steam-dom.js` — title and candidate extraction
 
@@ -318,9 +318,8 @@ rendering. Game-page chips ignore badge position/size settings by design.
   (release, updated, Steam ID, subscriptions) → score badges
   (`getScoreTone()`: `high ≥ 75`, `mid ≥ 50`, `low`, percent = `≤10 → ×10`) →
   hardware rows (CPU/RAM/GPU/OS) → truncated description → footer (donate,
-  API/GameStatus links, repo link). Missing games show `gameNotFound` plus the
-  checked API URLs from `getTriedUrls()` — the primary diagnostic for bad
-  slug resolution.
+  API/GameStatus links, repo link). Missing games show `gameNotFound` with no
+  URL list by design.
 - `renderBadge(entry, { isPage, isChart, appId })` and `createLoaderBadge()`
   build badge nodes; `bindTooltip()` lazily fills a **singleton**
   `.gs-steam-badge__tooltip` on hover/focus. All external strings/URLs pass
@@ -344,13 +343,16 @@ rendering. Game-page chips ignore badge position/size settings by design.
   tab bar (`data-gs-tab`: general / cache / about, labels `tabGeneral` /
   `sectionCache` + `tabAbout`) over a scrollable `.gs-panel__body` with matching
   `data-gs-pane` panes — General (interface language with live panel retranslate,
-  badge position/size, show-missing pill with hint), Cache (usage meter with
+  Display section: mode select plus the hotkey recorder button (`syncDisplayControls()`
+  gates badge controls + `recordDisplayKey()` capture listener), badge position/size,
+  show-missing pill with hint), Cache (usage meter with
   found/missing segments + count badge on the tab via `cache-pane.js`
   `paintCachePane()`, stored-lookup list capped at 100 with per-entry remove,
   duration hours with hint, clear-all with `{count}` confirmation via
   `clearGameCache()`, `cacheEmpty` state), About (hero + `aboutBlurb` + author
-  card linking to `AUTHOR_URL` + repo link button). Footer keeps only Save
-  actions; close on overlay click / `Escape`. `openSettings()` chains
+  card linking to `AUTHOR_URL` + repo link button). Footer: danger "reset to
+  defaults" (`resetSettings()` + refill + rescan) on the left, Save actions on
+  the right; close on overlay click / `Escape`. `openSettings()` chains
   `ensureSettingsButton().then(() => togglePanel(true))` for the menu command.
 
 ### `src/styles/`
@@ -372,11 +374,13 @@ rendering. Game-page chips ignore badge position/size settings by design.
 - `core/settings.js` notifies features only through the
   `setSettingsChangeListener()` hook (no `core → features` imports).
 
-`features/badge` is imported by `cards` and `game-page` (rendering helpers);
-`features/cards` exports `shouldRenderMissingBadge` for `game-page`;
-`features/settings` is standalone. `main.js` may import from anywhere but
-must not own feature state — the `MutationObserver` handoff via
-`setMutationObserver()` is the only shared-mutable bridge.
+`features/badge` is imported by `cards` and `game-page` (rendering helpers)
+and by `settings` (`dismissTooltip()` on panel open — a stuck interactive
+tooltip floats above the modal at the same z-index and swallows tab clicks);
+`features/cards` exports `shouldRenderMissingBadge` for `game-page`.
+`main.js` may import from anywhere but must not own feature state — the
+`MutationObserver` handoff via `setMutationObserver()` is the only
+shared-mutable bridge.
 
 Additional rules:
 
@@ -426,7 +430,9 @@ Stored under `gs_steam_settings` (`getSettings()` is the only reader;
 | `badgeVertical` | `'top'` | `'top'` / `'bottom'`; cards only |
 | `badgeHorizontal` | `'left'` | `'left'` / `'right'`; cards only |
 | `badgeSize` | `'medium'` | `'small'` / `'medium'` / `'large'` / `'xlarge'`; cards only |
-| `showMissingBadge` | `true` | `false` leaves unmatched cards unmarked |
+| `cardDisplay` | `'badge'` | `'badge'` / `'hover'` / `'context'` / `'hotkey'`; non-badge modes hide card badges |
+| `displayKey` | `'ShiftLeft'` | `e.code` for the hotkey mode (`ShiftLeft` matches `e.shiftKey`) |
+| `showMissingBadge` | `true` | `false` leaves unmatched cards unmarked; hover/click modes always show the card |
 | `language` | `'auto'` | `'auto'` (browser) or a `SUPPORTED_LOCALES` code; panel live-retranslates, badges need reload |
 
 Add new keys to `DEFAULT_SETTINGS`, a `normalize*` validator, the panel form
@@ -499,8 +505,8 @@ the root install artifacts stay synchronized. Before finishing, run
 
 ## Debugging
 
-- Hover a badge and read the tooltip footer: "Checked URLs" lists every API
-  URL attempted — the fastest way to diagnose slug-resolution misses.
+- Hover a badge and read the tooltip footer links (API / GameStatus) to verify
+  slug resolution; attempted slugs persist as entry `triedUrls` in GM storage.
 - `gsAppId` / `gsObserved` / `gsTitle` attributes in the Elements panel show
   what each anchor resolved to; `gsPageProcessed` marks game-page anchors.
 - Set cache hours to `0` (or Clear cache) to force live lookups while

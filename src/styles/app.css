@@ -1,4 +1,5 @@
-html.gs-badge-size-sm {
+html.gs-badge-size-sm,
+.gs-preview[data-size="small"] {
   --gs-card-badge-font: 11px;
   --gs-card-badge-lh: 19px;
   --gs-card-badge-gap: 5px;
@@ -10,7 +11,8 @@ html.gs-badge-size-sm {
   --gs-chart-badge-pad-x: 6px;
 }
 
-html.gs-badge-size-md {
+html.gs-badge-size-md,
+.gs-preview[data-size="medium"] {
   --gs-card-badge-font: 13px;
   --gs-card-badge-lh: 23px;
   --gs-card-badge-gap: 6px;
@@ -22,7 +24,8 @@ html.gs-badge-size-md {
   --gs-chart-badge-pad-x: 7px;
 }
 
-html.gs-badge-size-lg {
+html.gs-badge-size-lg,
+.gs-preview[data-size="large"] {
   --gs-card-badge-font: 15px;
   --gs-card-badge-lh: 26px;
   --gs-card-badge-gap: 7px;
@@ -34,7 +37,8 @@ html.gs-badge-size-lg {
   --gs-chart-badge-pad-x: 8px;
 }
 
-html.gs-badge-size-xl {
+html.gs-badge-size-xl,
+.gs-preview[data-size="xlarge"] {
   --gs-card-badge-font: 17px;
   --gs-card-badge-lh: 29px;
   --gs-card-badge-gap: 8px;
@@ -189,7 +193,16 @@ html.gs-badge-h-right .gs-steam-badge:not(.gs-steam-badge--page):not(.gs-steam-b
 .carousel_wide_mode .store_main_capsule.focus .gs-steam-badge {
   z-index: 110;
 }
+/* Non-badge display modes: cards open the tooltip on demand, badges stay hidden (page chips unaffected) */
+html.gs-no-card-badges .gs-steam-badge:not(.gs-steam-badge--page) {
+  display: none !important;
+  pointer-events: none !important;
+}
 
+/* Settings preview mock is not a store card — always render it. */
+html.gs-no-card-badges .gs-preview .gs-steam-badge {
+  display: inline-flex !important;
+}
 [class*="StoreSalePriceWidgetContainer"] > .gs-steam-badge--chart {
   align-self: flex-start;
 }
@@ -284,6 +297,55 @@ a.gs-steam-badge.gs-steam-badge--page.gs-steam-badge--cracked:hover {
 
 .gs-steam-badge__tooltip--interactive {
   pointer-events: auto;
+}
+
+.gs-steam-badge__tooltip .gs-tip-body--loading {
+  min-height: 120px;
+}
+
+.gs-steam-badge__tooltip .gs-tip-skeleton {
+  height: 12px;
+  margin: 8px 0;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #2a3644 25%, #3a4a5c 50%, #2a3644 75%);
+  background-size: 200% 100%;
+  animation: gs-tip-shimmer 1.2s ease-in-out infinite;
+}
+
+.gs-steam-badge__tooltip .gs-tip-skeleton:first-child {
+  width: 82%;
+}
+
+.gs-steam-badge__tooltip .gs-tip-skeleton:last-child {
+  width: 64%;
+}
+
+@keyframes gs-tip-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gs-steam-badge__tooltip .gs-tip-skeleton {
+    animation: none;
+  }
+  .gs-panel__tab,
+  .gs-panel__tabpane[data-gs-pane]:not([hidden]) {
+    animation: none;
+    transition: none;
+  }
+}
+
+.gs-panel__section.is-disabled {
+  opacity: 0.45;
+}
+
+.gs-panel__section.is-disabled select {
+  cursor: not-allowed;
 }
 
 .gs-steam-badge__tooltip .gs-tip-header {
@@ -534,24 +596,12 @@ a.gs-steam-badge.gs-steam-badge--page.gs-steam-badge--cracked:hover {
   line-height: 1.45;
 }
 
-.gs-steam-badge__tooltip .gs-tip-links {
-  margin: 4px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.gs-steam-badge__tooltip .gs-tip-links li + li {
-  margin-top: 4px;
-}
-
-.gs-steam-badge__tooltip .gs-tip-links a,
 .gs-steam-badge__tooltip .gs-tip-footer-links a {
   color: #66c0f4;
   text-decoration: none;
   word-break: break-all;
 }
 
-.gs-steam-badge__tooltip .gs-tip-links a:hover,
 .gs-steam-badge__tooltip .gs-tip-footer-links a:hover {
   color: #ffffff;
 }
@@ -700,13 +750,17 @@ a.gs-steam-badge.gs-steam-badge--page.gs-steam-badge--cracked:hover {
 .gs-panel-overlay {
   position: fixed;
   inset: 0;
-  z-index: 999999;
+  /* Above the shared badge tooltip (999999): the modal must own every click. */
+  z-index: 1000000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 24px 16px;
   box-sizing: border-box;
   background: rgba(0, 0, 0, 0.72);
+}
+.gs-panel [hidden] {
+  display: none;
 }
 .gs-panel-overlay[hidden] {
   display: none !important;
@@ -817,6 +871,7 @@ html.gs-modal-open body {
   cursor: pointer;
   white-space: nowrap;
   min-width: 0;
+  transition: color .15s ease, border-bottom-color .15s ease;
 }
 .gs-panel__tab:hover {
   color: #c7d5e0;
@@ -830,6 +885,20 @@ html.gs-modal-open body {
 }
 .gs-panel__tabpane[hidden] {
   display: none;
+}
+/* Pane switch: animation restarts each time [hidden] is lifted */
+.gs-panel__tabpane[data-gs-pane]:not([hidden]) {
+  animation: gs-pane-in .16s ease-out;
+}
+@keyframes gs-pane-in {
+  from {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 .gs-panel__tab-badge {
   display: inline-flex;
@@ -861,7 +930,6 @@ html.gs-modal-open body {
 .gs-panel__tab.is-active .gs-panel__tab-badge--low {
   color: #b6e3fb;
 }
-/* Cache tab meter + entry list */
 .gs-cache-meter {
   --gs-cache-found: #66c0f4;
   --gs-cache-missing: #8f98a0;
@@ -1173,16 +1241,146 @@ html.gs-modal-open body {
   letter-spacing: .04em;
   text-transform: uppercase;
 }
-.gs-panel__section--row {
+.gs-panel__divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #000, transparent);
+  margin: 0 10px;
+}
+.gs-panel__tabpane[data-gs-pane="general"] {
+  padding: 12px 12px 8px;
+}
+.gs-panel__tabpane[data-gs-pane="general"] .gs-panel__section {
+  margin: 0 0 10px;
+  padding: 12px 14px;
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(0, 0, 0, 0.65);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border-radius: 3px;
+}
+.gs-panel__tabpane[data-gs-pane="general"] .gs-panel__section:last-child {
+  margin-bottom: 4px;
+}
+.gs-panel__section-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+.gs-panel__section-icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  color: #66c0f4;
+}
+.gs-panel__section-icon svg {
+  width: 100%;
+  height: 100%;
+}
+.gs-preview {
+  position: relative;
+  margin: 2px 0 12px;
+  overflow: hidden;
+  border: 1px solid #000;
+  border-radius: 2px;
+  background: #0e141b;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+.gs-preview__cover {
+  height: 74px;
+  background:
+    radial-gradient(120% 130% at 85% 10%, rgba(102, 192, 244, 0.35), transparent 55%),
+    linear-gradient(115deg, #1b2838 0%, #2a475e 55%, #1b2838 100%);
+}
+.gs-preview__row {
+  padding: 8px 10px 10px;
+}
+.gs-preview__bar {
+  display: block;
+  height: 8px;
+  border-radius: 2px;
+  background: #2a3644;
+}
+.gs-preview__bar + .gs-preview__bar {
+  margin-top: 6px;
+}
+.gs-preview__bar--dim {
+  background: #212c38;
+}
+.gs-preview .gs-steam-badge {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+.gs-pos-picker {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  max-width: 230px;
+}
+.gs-pos-picker__btn {
+  position: relative;
+  height: 36px;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  background: #0e141b;
+  border: 1px solid #000;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  border-radius: 2px;
+}
+.gs-pos-picker__btn:hover {
+  border-color: #417a9b;
+}
+.gs-pos-picker__btn:focus-visible {
+  outline: 1px solid #66c0f4;
+  outline-offset: 2px;
+}
+.gs-pos-picker__btn.is-active {
+  border-color: #66c0f4;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04), 0 0 8px rgba(102, 192, 244, 0.35);
+}
+.gs-pos-picker__btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.gs-pos-picker__dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid #66c0f4;
+}
+.gs-pos-picker__btn[data-v="top"] .gs-pos-picker__dot {
+  top: 6px;
+}
+.gs-pos-picker__btn[data-v="bottom"] .gs-pos-picker__dot {
+  bottom: 6px;
+}
+.gs-pos-picker__btn[data-h="left"] .gs-pos-picker__dot {
+  left: 6px;
+}
+.gs-pos-picker__btn[data-h="right"] .gs-pos-picker__dot {
+  right: 6px;
+}
+.gs-pos-picker__btn.is-active .gs-pos-picker__dot {
+  background: #66c0f4;
+  box-shadow: 0 0 6px rgba(102, 192, 244, 0.8);
+}
+.gs-missing-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
-.gs-panel__divider {
-  height: 1px;
-  background: linear-gradient(90deg, transparent, #000, transparent);
-  margin: 0 10px;
+#gs-display-key-row:not([hidden]) {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+#gs-display-key {
+  min-width: 120px;
 }
 .gs-panel__footer {
   display: flex;
@@ -1233,11 +1431,6 @@ html.gs-modal-open body {
 .gs-field select:focus {
   background: #3d7a9c;
   box-shadow: 0 0 0 1px #66c0f4;
-}
-.gs-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
 }
 .gs-hint {
   margin: 6px 0 0;

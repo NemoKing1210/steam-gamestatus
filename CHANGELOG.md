@@ -7,6 +7,87 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.12.5] - 2026-09-07
+
+### Changed
+
+- Settings tab switching animates: panes fade in with a slight rise, active-tab text and underline crossfade (disabled under `prefers-reduced-motion`)
+
+## [1.12.4] - 2026-09-07
+
+### Fixed
+
+- Badge preview in General tab was invisible in non-badge display modes (hover / right-click / key+click): the badge-hiding page rule also hid the settings mock, now exempted
+
+## [1.12.3] - 2026-09-07
+
+### Changed
+
+- General tab section icons replaced with Heroicons outline set (globe, monitor, tag, eye-off)
+
+## [1.12.2] - 2026-09-07
+
+### Changed
+
+- Redesigned General settings tab: sections as cards with icons, live badge preview mock that follows size and position, visual corner picker replacing the two position dropdowns, missing-badge switch merged into one row card
+
+### Fixed
+
+- Trigger-key row no longer permanently visible: panel styles overrode the `hidden` attribute on flex fields
+- Header dot again reflects the horizontal badge position setting
+
+## [1.12.1] - 2026-09-07
+
+### Fixed
+
+- Settings tabs (Cache, About) no longer ignore clicks when a game tooltip is still visible: opening the panel now dismisses any stuck interactive tooltip, and the modal sits above the shared tooltip layer so it owns every click
+- Cache entry links inside the settings panel are no longer treated as store cards: full rescans skip the panel UI instead of stamping badges and observation state into the stored-lookups list
+
+## [1.12.0] - 2026-09-06
+
+### Added
+
+- “Reset to defaults” button in the panel footer (danger style, left side) restoring every setting, re-rendering the form, and re-scanning cards (new `resetSettings()` core helper, `resetSettings` key in all locales)
+
+### Changed
+
+- Hotkey display mode defaults to Shift instead of Space (new `displayKey` default `ShiftLeft`, matched via `e.shiftKey`)
+- General tab regrouped: interface language, then a titled “Display” section (mode + trigger key recorder), then Badge, then show-missing (new `sectionDisplay` key in all locales)
+
+### Fixed
+
+- Hotkey trigger key no longer resets on Save: missing `normalizeCardDisplay`/`displayKey` imports crashed `fillPanelForm()` on panel open (blank key label, stale form state); `badgeSize` normalization restored in `saveSettings()`, display-key fallback now tracks the default
+
+### Added
+
+- Card display modes “Right-click” (suppresses the menu on cards, pins the tooltip until outside click/Escape) and “Left click + key” (configurable trigger key, Space by default; plain clicks still navigate). Key+click and right-click tooltips share the instant skeleton flow; badge-position/size settings stay gated on badge mode
+
+## [1.10.2] - 2026-09-06
+
+### Removed
+
+- “Checked URLs” section from the “not in database” tooltip card, plus its dead `getTriedUrls` helper, `checkedUrls` locale keys, and orphaned styles
+
+## [1.10.1] - 2026-09-06
+
+### Fixed
+
+- Hover display mode no longer hides the tooltip when the loaded card lands under the cursor: card and tooltip are treated as one hover region, hide fires only when the cursor is over neither, and shown cards are cached per App ID so moving between card and tooltip never flashes the skeleton
+- Hover display mode always opens the card, even for games missing from the database (renders “not in database” instead of staying silent)
+
+## [1.10.0] - 2026-09-06
+
+### Changed
+
+- General tab regrouped: card display mode moves above the Badge section, and badge position/size controls disable with a dimmed hint unless “Badge on cards” mode is selected (new `badgeDisabledHint` key in all locales)
+- Hover display mode opens the tooltip instantly with the game title and shimmer skeleton rows while the lookup loads, then swaps in the full card
+
+## [1.9.0] - 2026-09-06
+
+### Added
+
+- Card display mode setting (Badge section): always show badges on cards, or open the full GameStatus card only when hovering a game — no badges stamped in hover mode, lookups load lazily on first hover. Game page chips are unaffected (new `cardDisplay` setting, `cardDisplay*` keys in all locales)
+
 ## [1.8.5] - 2026-09-06
 
 ### Changed
@@ -233,6 +314,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI localization for 10 languages based on browser locale (fallback: English)
 - Tampermonkey / Violentmonkey / Greasemonkey-compatible metadata and auto-update URLs
 
+[1.12.5]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.12.5
+[1.12.4]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.12.4
+[1.12.3]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.12.3
+[1.12.2]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.12.2
+[1.12.1]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.12.1
+[1.12.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.12.0
+[1.11.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.11.0
+[1.10.2]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.10.2
+[1.10.1]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.10.1
+[1.10.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.10.0
+[1.9.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.9.0
 [1.8.5]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.8.5
 [1.8.4]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.8.4
 [1.8.3]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.8.3

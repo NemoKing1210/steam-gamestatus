@@ -17,8 +17,9 @@ export const DEFAULT_SETTINGS = {
   badgeVertical: 'top',
   badgeHorizontal: 'left',
   badgeSize: 'medium',
+  cardDisplay: 'badge',
+  displayKey: 'ShiftLeft',
   showMissingBadge: true,
-  language: 'auto',
 };
 export const MAX_CONCURRENT = 2;
 export const CARD_ROOT_MARGIN = '80px 0px';

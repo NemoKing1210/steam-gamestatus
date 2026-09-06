@@ -1,5 +1,5 @@
 import { BADGE_CLASS, DONATE_URL, REPO_URL, SITE_BASE } from '../../core/constants.js';
-import { buildApiUrl, getTriedUrls } from '../../api/gamestatus.js';
+import { buildApiUrl } from '../../api/gamestatus.js';
 import { t } from '../../i18n/index.js';
 import { escapeAttr, escapeHtml } from '../../utils/html.js';
 import {
@@ -165,21 +165,6 @@ export function formatTooltip(entry) {
   const game = entry?.data || null;
 
   if (!game) {
-    const urls = getTriedUrls(entry);
-    const links = urls.length
-      ? `<div class="gs-tip-section">
-          <div class="gs-tip-section-title">${escapeHtml(t('checkedUrls'))}</div>
-          <ul class="gs-tip-links">
-            ${urls
-              .map(
-                (url) =>
-                  `<li><a href="${escapeAttr(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></li>`
-              )
-              .join('')}
-          </ul>
-        </div>`
-      : '';
-
     return `
       <div class="gs-tip-header">
         <div class="gs-tip-header-body">
@@ -189,7 +174,6 @@ export function formatTooltip(entry) {
       </div>
       <div class="gs-tip-body">
         <p class="gs-tip-muted">${escapeHtml(t('gameNotFound'))}</p>
-        ${links}
       </div>
       ${formatTooltipFooter(entry, null)}
     `;
@@ -263,6 +247,225 @@ export function ensureTooltip() {
   return tooltipEl;
 }
 
+export function showTooltipHtml(target, html) {
+  const tip = ensureTooltip();
+  tip.innerHTML = html;
+  tip.classList.add(`${BADGE_CLASS}__tooltip--visible`, `${BADGE_CLASS}__tooltip--interactive`);
+
+  const rect = target.getBoundingClientRect();
+  const tipRect = tip.getBoundingClientRect();
+  const pad = 15;
+  let left = rect.left;
+  let top = rect.top - tipRect.height - 7;
+
+  if (top < pad) {
+    top = rect.bottom + 7;
+  }
+
+  if (top + tipRect.height > window.innerHeight - pad) {
+    top = Math.max(pad, rect.top - tipRect.height - 7);
+  }
+
+  if (left + tipRect.width > window.innerWidth - pad) {
+    left = window.innerWidth - tipRect.width - pad;
+  }
+
+  tip.style.left = `${Math.max(pad, left)}px`;
+  tip.style.top = `${Math.max(pad, top)}px`;
+}
+
+export function showTooltipForElement(target, entry) {
+  showTooltipHtml(target, formatTooltip(entry));
+}
+
+/**
+ * Instant loading state for hover display mode: same tooltip shell with the
+ * known game title and shimmer placeholders, swapped for real content on resolve.
+ */
+export function formatLoadingTooltip(title) {
+  const skeletonRow = '<div class="gs-tip-skeleton"></div>';
+  return `
+    <div class="gs-tip-header">
+      <div class="gs-tip-header-body">
+        <div class="gs-tip-title">${escapeHtml(title || t('loading'))}</div>
+        <div class="gs-tip-chips">${tipChip(t('loading'), '')}</div>
+      </div>
+    </div>
+    <div class="gs-tip-body gs-tip-body--loading">
+      ${skeletonRow}
+      ${skeletonRow}
+      ${skeletonRow}
+    </div>
+  `;
+}
+/**
+ * Fully dismiss the shared tooltip: opening the settings modal must never
+ * leave a stuck interactive tooltip floating above the panel and swallowing
+ * its clicks (hover tooltip whose hide was cancelled by tip-mouseenter, or a
+ * pinned card tooltip).
+ */
+export function dismissTooltip() {
+  cardTooltipDismissOnOutside = false;
+  activeCardTooltip = null;
+  hideTooltip();
+}
+
+export function hideTooltip() {
+  tooltipEl?.classList.remove(`${BADGE_CLASS}__tooltip--visible`, `${BADGE_CLASS}__tooltip--interactive`);
+}
+
+let activeCardTooltip = null;
+let cardTooltipDismissOnOutside = false;
+let cardTooltipHooksInstalled = false;
+
+function ensureCardTooltipHooks() {
+  if (cardTooltipHooksInstalled) return;
+  cardTooltipHooksInstalled = true;
+  ensureTooltip().addEventListener('mouseenter', () => activeCardTooltip?.cancelHide());
+  ensureTooltip().addEventListener('mouseleave', () => activeCardTooltip?.scheduleHide());
+  document.addEventListener(
+    'click',
+    (e) => {
+      if (!cardTooltipDismissOnOutside) return;
+      const tip = ensureTooltip();
+      if (!tip.classList.contains(`${BADGE_CLASS}__tooltip--visible`) || tip.contains(e.target)) return;
+      cardTooltipDismissOnOutside = false;
+      hideTooltip();
+    },
+    true
+  );
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && cardTooltipDismissOnOutside) {
+      cardTooltipDismissOnOutside = false;
+      hideTooltip();
+    }
+  });
+}
+
+/**
+ * Shared on-demand tooltip brain for non-badge display modes. Card and tooltip
+ * are one hover region: hide fires only when the cursor is over neither
+ * (checked at hide time, since a taller loaded card often ends up under the
+ * cursor). Shown entries are cached per live App ID so repeated triggers never
+ * flash the skeleton. Callers bind their own trigger events to `show()`.
+ */
+function createCardTooltip(card, resolveEntry, getTitle, getLiveId) {
+  ensureCardTooltipHooks();
+  let activeToken = 0;
+  let hideTimer = null;
+  let cached = null;
+
+  const liveId = () => (typeof getLiveId === 'function' ? getLiveId() : '');
+
+  const show = (dismissOnOutside) => {
+    cardTooltipDismissOnOutside = !!dismissOnOutside;
+    activeCardTooltip = api;
+    clearTimeout(hideTimer);
+    hideTimer = null;
+    const token = ++activeToken;
+    const id = liveId();
+    if (cached && id && cached.id === id) {
+      showTooltipForElement(card, cached.entry);
+      return;
+    }
+    cached = null;
+    showTooltipHtml(card, formatLoadingTooltip(typeof getTitle === 'function' ? getTitle() : ''));
+    Promise.resolve()
+      .then(() => resolveEntry())
+      .then((entry) => {
+        if (token !== activeToken) return;
+        if (!entry || (id && liveId() !== id)) {
+          hideTooltip();
+          return;
+        }
+        cached = { id, entry };
+        showTooltipForElement(card, entry);
+      });
+  };
+
+  const scheduleHide = () => {
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(() => {
+      if (card.matches(':hover') || ensureTooltip().matches(':hover')) return;
+      activeToken++;
+      if (activeCardTooltip === api) {
+        activeCardTooltip = null;
+        cardTooltipDismissOnOutside = false;
+      }
+      hideTooltip();
+    }, 180);
+  };
+
+  const cancelHide = () => {
+    clearTimeout(hideTimer);
+    hideTimer = null;
+  };
+
+  const api = { show, scheduleHide, cancelHide };
+  return api;
+}
+
+function guardCardBinding(card) {
+  if (card.dataset.gsHoverBound === '1') return false;
+  card.dataset.gsHoverBound = '1';
+  return true;
+}
+
+/**
+ * Hover mode: tooltip opens on game hover, no outside-click dismissal.
+ */
+export function bindCardHoverTooltip(card, resolveEntry, getTitle, getLiveId, signal) {
+  if (!guardCardBinding(card)) return;
+  const tip = createCardTooltip(card, resolveEntry, getTitle, getLiveId);
+  const opts = signal ? { signal } : undefined;
+  card.addEventListener('mouseenter', () => tip.show(false), opts);
+  card.addEventListener('focus', () => tip.show(false), opts);
+  card.addEventListener('mouseleave', tip.scheduleHide, opts);
+  card.addEventListener('blur', tip.scheduleHide, opts);
+}
+
+/**
+ * Right-click mode: Steam's menu is suppressed on cards, the tooltip pins
+ * until outside click, Escape, or moving off the card+tooltip region.
+ */
+export function bindCardContextTooltip(card, resolveEntry, getTitle, getLiveId, signal) {
+  if (!guardCardBinding(card)) return;
+  const tip = createCardTooltip(card, resolveEntry, getTitle, getLiveId);
+  const opts = signal ? { signal } : undefined;
+  card.addEventListener(
+    'contextmenu',
+    (e) => {
+      e.preventDefault();
+      tip.show(true);
+    },
+    opts
+  );
+  card.addEventListener('mouseleave', tip.scheduleHide, opts);
+  card.addEventListener('blur', tip.scheduleHide, opts);
+}
+
+/**
+ * Key+click mode: left-click while isKeyHeld(e) opens the tooltip instead of
+ * navigating; plain clicks behave as usual.
+ */
+export function bindCardHotkeyTooltip(card, resolveEntry, getTitle, getLiveId, isKeyHeld, signal) {
+  if (!guardCardBinding(card)) return;
+  const tip = createCardTooltip(card, resolveEntry, getTitle, getLiveId);
+  const opts = signal ? { signal } : undefined;
+  card.addEventListener(
+    'click',
+    (e) => {
+      if (e.button !== 0 || typeof isKeyHeld !== 'function' || !isKeyHeld(e)) return;
+      if (!e.target?.closest?.('a')) return;
+      e.preventDefault();
+      tip.show(true);
+    },
+    opts
+  );
+  card.addEventListener('mouseleave', tip.scheduleHide, opts);
+  card.addEventListener('blur', tip.scheduleHide, opts);
+}
+
 export function bindTooltip(badge, entry) {
   const activate = () => {
     badge.removeEventListener('mouseenter', activate);
@@ -273,36 +476,12 @@ export function bindTooltip(badge, entry) {
 
     const show = () => {
       clearTimeout(hideTimer);
-      tip.innerHTML = formatTooltip(entry);
-      tip.classList.add(`${BADGE_CLASS}__tooltip--visible`, `${BADGE_CLASS}__tooltip--interactive`);
-
-      const rect = badge.getBoundingClientRect();
-      const tipRect = tip.getBoundingClientRect();
-      const pad = 15;
-      let left = rect.left;
-      let top = rect.top - tipRect.height - 7;
-
-      if (top < pad) {
-        top = rect.bottom + 7;
-      }
-
-      if (top + tipRect.height > window.innerHeight - pad) {
-        top = Math.max(pad, rect.top - tipRect.height - 7);
-      }
-
-      if (left + tipRect.width > window.innerWidth - pad) {
-        left = window.innerWidth - tipRect.width - pad;
-      }
-
-      tip.style.left = `${Math.max(pad, left)}px`;
-      tip.style.top = `${Math.max(pad, top)}px`;
+      showTooltipForElement(badge, entry);
     };
 
     const scheduleHide = () => {
       clearTimeout(hideTimer);
-      hideTimer = setTimeout(() => {
-        tip.classList.remove(`${BADGE_CLASS}__tooltip--visible`, `${BADGE_CLASS}__tooltip--interactive`);
-      }, 120);
+      hideTimer = setTimeout(hideTooltip, 120);
     };
 
     badge.addEventListener('mouseenter', show);

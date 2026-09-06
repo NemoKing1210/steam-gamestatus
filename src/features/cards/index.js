@@ -7,7 +7,7 @@ import {
 } from '../../core/constants.js';
 import { getSettings } from '../../core/settings.js';
 import { loadGame } from '../../api/gamestatus.js';
-import { createLoaderBadge, ensureRelativePosition, renderBadge } from '../badge/index.js';
+import { bindCardContextTooltip, bindCardHotkeyTooltip, bindCardHoverTooltip, createLoaderBadge, ensureRelativePosition, renderBadge } from '../badge/index.js';
 import { extractAppIdFromHref, findAppAnchor, isDsAppCapsule } from '../../utils/slug.js';
 import { getCardTitle, getPageAppId, isGamePage } from '../../utils/steam-dom.js';
 import { t } from '../../i18n/index.js';
@@ -17,6 +17,13 @@ let isScrolling = false;
 let scrollIdleTimer = null;
 let hydrateFlushRaf = null;
 let scrollListenerInstalled = false;
+let keyTrackerInstalled = false;
+/** e.code values currently held down (hotkey display mode) */
+const pressedCodes = new Set();
+/** card element → AbortController for its tooltip binding */
+const cardBindControllers = new WeakMap();
+/** every live binding controller, for bulk abort on display-mode switch */
+const liveBindControllers = new Set();
 /** @type {Array<{ card: Element, appId: string, link: HTMLAnchorElement|{ href: string }, title: string }>} */
 const hydrationQueue = [];
 
@@ -192,7 +199,9 @@ export function findDsAppCard(link) {
 export function tryAddCardFromLink(link, cards) {
   if (link.classList.contains(BADGE_CLASS)) return;
   if (link.closest('.home_content_reason')) return;
-
+  // Own settings UI also links to /app/{id} (cache entry list) — never treat
+  // it as store cards (mirrors isRelevantAddedNode for the full-scan path).
+  if (link.closest?.('#gs-panel-overlay, #gs-settings-btn')) return;
   const appId = extractAppIdFromHref(link.href);
   if (!appId) return;
   // Game page header badge is handled separately — skip same-app capsules
@@ -491,8 +500,37 @@ export function setupScrollListener() {
   );
 }
 
+export function setupKeyTracker() {
+  if (keyTrackerInstalled) return;
+  keyTrackerInstalled = true;
+  window.addEventListener('keydown', (e) => {
+    pressedCodes.add(e.code);
+  });
+  window.addEventListener('keyup', (e) => {
+    pressedCodes.delete(e.code);
+  });
+  window.addEventListener('blur', () => pressedCodes.clear());
+}
+
+export function isDisplayKeyHeld(e) {
+  const code = getSettings().displayKey;
+  const mod = /^(Alt|Control|Shift|Meta)/.exec(code || '');
+  if (mod) return !!e[`${mod[1].toLowerCase()}Key`];
+  return pressedCodes.has(code);
+}
+
+export function getCardBindSignal(card) {
+  cardBindControllers.get(card)?.abort();
+  const ac = new AbortController();
+  cardBindControllers.set(card, ac);
+  liveBindControllers.add(ac);
+  ac.signal.addEventListener('abort', () => liveBindControllers.delete(ac));
+  return ac.signal;
+}
+
 export const visibilityObserver = new IntersectionObserver(
   (entries) => {
+    if (!isBadgeDisplayMode()) return;
     entries.forEach((entry) => {
       if (!entry.isIntersecting) return;
 
@@ -522,17 +560,37 @@ export function resetBadgeAnchor(anchor) {
   delete anchor.dataset.gsAppId;
   delete anchor.dataset.gsTitle;
 }
-
+export function isBadgeDisplayMode() {
+  return getSettings().cardDisplay === 'badge';
+}
 export function shouldRenderMissingBadge(entry) {
   if (entry?.data) return true;
   return getSettings().showMissingBadge !== false;
 }
 
+async function resolveHoverEntry(card, link, title, fallbackAppId) {
+  try {
+    const liveId = resolveCardAppId(card, fallbackAppId);
+    if (!liveId) return null;
+    const liveLink = getCardLink(card) || link;
+    const liveTitle = title || getCardTitle(card, liveLink, getCardLink);
+    const entry = await loadGame(liveId, liveLink, liveTitle);
+    if (resolveCardAppId(card, fallbackAppId) !== liveId) return null;
+    // Hover mode always shows the card — missing games render "not in database".
+    return entry;
+  } catch {
+    return null;
+  }
+}
 export async function hydrateCard(card, appId, link, title) {
   const anchor = getBadgeAnchor(card);
   const isChart = isChartTableRow(card);
   const resolvedAppId = resolveCardAppId(card, appId);
   const resolvedLink = getCardLink(card) || link;
+  if (!isBadgeDisplayMode()) {
+    anchor.querySelector(`.${BADGE_CLASS}--loading`)?.remove();
+    return;
+  }
   const resolvedTitle = title || getCardTitle(card, resolvedLink, getCardLink);
   const loader = anchor.querySelector(`.${BADGE_CLASS}--loading`);
 
@@ -599,6 +657,7 @@ export function observeCardsMap(cards) {
   if (!scrollListenerInstalled) {
     scrollListenerInstalled = true;
     setupScrollListener();
+    setupKeyTracker();
   }
 
   pauseMutationObserver();
@@ -608,6 +667,26 @@ export function observeCardsMap(cards) {
         const resolvedAppId = resolveCardAppId(card, appId);
         if (getCardAppId(card) && String(appId) !== resolvedAppId) return;
         if (!isCarouselBadgeVisible(card)) return;
+
+        if (!isBadgeDisplayMode()) {
+          if (hasMultipleGames(card)) return;
+          if (card.dataset.gsHoverBound === '1') return;
+          const mode = getSettings().cardDisplay;
+          const itemLink = getCardLink(card) || link;
+          const itemTitle = title || getCardTitle(card, itemLink, getCardLink);
+          const resolveEntry = () => resolveHoverEntry(card, itemLink, itemTitle, resolvedAppId);
+          const getTitle = () => title || getCardTitle(card, getCardLink(card) || itemLink, getCardLink);
+          const getLiveId = () => resolveCardAppId(card, resolvedAppId);
+          const signal = getCardBindSignal(card);
+          if (mode === 'context') {
+            bindCardContextTooltip(card, resolveEntry, getTitle, getLiveId, signal);
+          } else if (mode === 'hotkey') {
+            bindCardHotkeyTooltip(card, resolveEntry, getTitle, getLiveId, isDisplayKeyHeld, signal);
+          } else {
+            bindCardHoverTooltip(card, resolveEntry, getTitle, getLiveId, signal);
+          }
+          return;
+        }
 
         const anchor = getBadgeAnchor(card);
         const isChart = isChartTableRow(card);
@@ -650,4 +729,23 @@ export function observeCards() {
 
 export function observeCardsFromNodes(nodes) {
   observeCardsMap(collectCardsFromNodes(nodes));
+}
+
+/**
+ * Live display-mode switch: abort on-demand tooltip bindings, drop queued
+ * hydrations, strip card badges and observation state (page chips use
+ * gsPageProcessed, untouched), then rescan with the new mode's triggers.
+ */
+export function refreshCardsForDisplayMode() {
+  liveBindControllers.forEach((ac) => ac.abort());
+  liveBindControllers.clear();
+  hydrationQueue.length = 0;
+  document.querySelectorAll('[data-gs-hover-bound="1"]').forEach((el) => {
+    delete el.dataset.gsHoverBound;
+  });
+  document.querySelectorAll('[data-gs-observed="1"]').forEach((anchor) => {
+    resetBadgeAnchor(anchor);
+    delete anchor.dataset.gsMissingHidden;
+  });
+  observeCards();
 }

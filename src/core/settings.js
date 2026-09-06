@@ -24,6 +24,14 @@ export function normalizeBadgeSize(value) {
   if (value === 'small' || value === 'large' || value === 'xlarge') return value;
   return 'medium';
 }
+export function normalizeCardDisplay(value) {
+  if (value === 'hover' || value === 'context' || value === 'hotkey') return value;
+  return 'badge';
+}
+export function normalizeDisplayKey(value) {
+  if (typeof value === 'string' && /^[A-Za-z0-9]{2,20}$/.test(value)) return value;
+  return DEFAULT_SETTINGS.displayKey;
+}
 export function normalizeLanguage(value) {
   if (value === 'auto' || SUPPORTED_LOCALES.includes(value)) return value;
   return DEFAULT_SETTINGS.language;
@@ -39,6 +47,8 @@ export function loadSettings() {
     badgeVertical: normalizeBadgeVertical(raw.badgeVertical),
     badgeHorizontal: normalizeBadgeHorizontal(raw.badgeHorizontal),
     badgeSize: normalizeBadgeSize(raw.badgeSize),
+    cardDisplay: normalizeCardDisplay(raw.cardDisplay),
+    displayKey: normalizeDisplayKey(raw.displayKey),
     showMissingBadge: raw.showMissingBadge !== false,
     language: normalizeLanguage(raw.language),
   };
@@ -64,7 +74,9 @@ export function saveSettings(next) {
     cacheHours: normalizeCacheHours(next.cacheHours ?? settings.cacheHours),
     badgeVertical: normalizeBadgeVertical(next.badgeVertical ?? settings.badgeVertical),
     badgeHorizontal: normalizeBadgeHorizontal(next.badgeHorizontal ?? settings.badgeHorizontal),
+    cardDisplay: normalizeCardDisplay(next.cardDisplay ?? settings.cardDisplay),
     badgeSize: normalizeBadgeSize(next.badgeSize ?? settings.badgeSize),
+    displayKey: normalizeDisplayKey(next.displayKey ?? settings.displayKey),
     showMissingBadge:
       typeof next.showMissingBadge === 'boolean'
         ? next.showMissingBadge
@@ -76,11 +88,14 @@ export function saveSettings(next) {
   settingsChangeListener?.();
 }
 
+export function resetSettings() {
+  saveSettings({ ...DEFAULT_SETTINGS });
+}
+
 export function getCacheTtlMs() {
   const hours = normalizeCacheHours(settings.cacheHours);
   return hours > 0 ? hours * 60 * 60 * 1000 : 0;
 }
-
 export function applyBadgeAppearance() {
   const root = document.documentElement;
   root.classList.remove(
@@ -91,7 +106,8 @@ export function applyBadgeAppearance() {
     'gs-badge-size-sm',
     'gs-badge-size-md',
     'gs-badge-size-lg',
-    'gs-badge-size-xl'
+    'gs-badge-size-xl',
+    'gs-no-card-badges'
   );
   const sizeClass =
     settings.badgeSize === 'small'
@@ -106,4 +122,5 @@ export function applyBadgeAppearance() {
     settings.badgeHorizontal === 'right' ? 'gs-badge-h-right' : 'gs-badge-h-left',
     sizeClass
   );
+  if (normalizeCardDisplay(settings.cardDisplay) !== 'badge') root.classList.add('gs-no-card-badges');
 }

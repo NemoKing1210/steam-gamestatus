@@ -1,6 +1,6 @@
 {
   "name": "steam-gamestatus",
-  "version": "1.8.5",
+  "version": "1.12.5",
   "private": true,
   "type": "module",
   "description": "Userscript that shows extra game info from gamestatus.info on Steam store cards and game pages",
