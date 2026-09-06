@@ -77,4 +77,5 @@ cacheListEmpty: '아직 없음 — 상점 페이지를 열면 여기에 표시�
 cacheRemoveEntry: '이 항목 삭제',
 cacheEntryNotFound: '미발견',
 cacheListMore: '…{count}개 더',
+settingsWord: '설정',
 };

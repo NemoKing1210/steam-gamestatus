@@ -67,6 +67,12 @@ export function tipChip(text, variant = '') {
   return `<span class="gs-tip-chip${mod}">${escapeHtml(text)}</span>`;
 }
 
+export function tipTitle(game) {
+  const title = escapeHtml(game?.title || 'GameStatus');
+  if (!game?.slug) return title;
+  return `<a class="gs-tip-title__link" href="${escapeAttr(`${SITE_BASE}/${game.slug}`)}" target="_blank" rel="noopener noreferrer">${title}</a>`;
+}
+
 export function splitChipValues(value) {
   return String(value || '')
     .split(/[,;/|]+/)
@@ -232,7 +238,7 @@ export function formatTooltip(entry) {
     <div class="gs-tip-header">
       ${cover}
       <div class="gs-tip-header-body">
-        <div class="gs-tip-title">${escapeHtml(game.title || 'GameStatus')}</div>
+        <div class="gs-tip-title">${tipTitle(game)}</div>
         <div class="gs-tip-chips">${headerChips}</div>
       </div>
     </div>

@@ -77,4 +77,5 @@ cacheListEmpty: 'まだありません — ストアページを開くとここ�
 cacheRemoveEntry: 'このエントリを削除',
 cacheEntryNotFound: '未検出',
 cacheListMore: '…あと {count} 件',
+settingsWord: '設定',
 };

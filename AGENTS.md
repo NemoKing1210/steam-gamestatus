@@ -332,6 +332,12 @@ rendering. Game-page chips ignore badge position/size settings by design.
 
 - `ensureSettingsButton()`: waits up to 20 s for `#global_actions`, then
   injects `#gs-settings-btn` as a `popup_menu_item` into the account dropdown
+  (`#account_dropdown .popup_body.popup_menu`, logged-in) or as a compact
+  header button (logged-out fallback). Both carry a "`settingsWord` ·
+  GameStatus" label. `observeHeader()` re-creates the
+  button if Steam's header re-renders and upgrades the fallback to the menu
+  item once the dropdown appears. Clicks hide the Steam dropdown via `HideMenu`
+  and open the modal.
 - Panel (`ensurePanel()` + `fillPanelForm()` / `persistPanelForm()` /
   `togglePanel()` / `switchPanelTab()` + body scroll lock): centered `#gs-panel`
   modal over a dimmed `#gs-panel-overlay`, header with `v{SCRIPT_VERSION}` badge,

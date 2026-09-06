@@ -77,4 +77,5 @@ cacheListEmpty: 'Aún no hay consultas — abre páginas de la tienda y aparecer
 cacheRemoveEntry: 'Eliminar esta entrada',
 cacheEntryNotFound: 'No encontrado',
 cacheListMore: '…y {count} más',
+settingsWord: 'Ajustes',
 };

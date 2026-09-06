@@ -77,4 +77,5 @@ cacheListEmpty: 'No stored lookups yet — open store pages and they will appear
 cacheRemoveEntry: 'Remove this entry',
 cacheEntryNotFound: 'Not found',
 cacheListMore: '…and {count} more',
+settingsWord: 'Settings',
 };

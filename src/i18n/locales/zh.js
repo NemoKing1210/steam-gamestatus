@@ -76,4 +76,5 @@ cacheListEmpty: '暂无缓存 — 浏览商店页面后会显示在这里。',
 cacheRemoveEntry: '删除此条',
 cacheEntryNotFound: '未找到',
 cacheListMore: '…还有 {count} 条',
+settingsWord: '设置',
 };

@@ -15,6 +15,7 @@ import { configureLocale, t } from '../../i18n/index.js';
 import { LOCALE_NATIVE_NAMES, SUPPORTED_LOCALES } from '../../i18n/meta.js';
 
 import { paintCachePane } from './cache-pane.js';
+
 function buildLanguageOptions() {
   const auto = `<option value="auto">${escapeHtml(t('langAuto'))}</option>`;
   return auto + SUPPORTED_LOCALES.map((locale) =>
@@ -100,7 +101,7 @@ function injectAccountMenuItem(menu) {
   item.className = 'popup_menu_item gs-menu-item';
   item.href = '#';
   item.title = t('btnTitle');
-  item.textContent = t('btnText');
+  item.innerHTML = `<span>${escapeHtml(t('settingsWord'))} ${escapeHtml(t('btnText'))}</span>`;
   item.addEventListener('click', onSettingsTriggerClick);
   menu.appendChild(item);
 
@@ -120,7 +121,7 @@ function injectHeaderFallback(host) {
   btn.className = 'gs-header-btn';
   btn.title = t('btnTitle');
   btn.innerHTML = `
-    <span class="gs-header-btn__text">${escapeHtml(t('btnText'))}</span>
+    <span class="gs-header-btn__text">${escapeHtml(t('settingsWord'))} · ${escapeHtml(t('btnText'))}</span>
     <span class="gs-header-btn__dot" id="gs-settings-dot"></span>
   `;
   btn.addEventListener('click', onSettingsTriggerClick);

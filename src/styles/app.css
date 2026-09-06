@@ -318,6 +318,14 @@ a.gs-steam-badge.gs-steam-badge--page.gs-steam-badge--cracked:hover {
   font-weight: 700;
   line-height: 1.25;
 }
+.gs-steam-badge__tooltip .gs-tip-title__link {
+  color: #ffffff;
+  text-decoration: none;
+}
+.gs-steam-badge__tooltip .gs-tip-title__link:hover {
+  color: #66c0f4;
+  text-decoration: underline;
+}
 
 .gs-steam-badge__tooltip .gs-tip-chips {
   display: flex;

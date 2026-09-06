@@ -77,4 +77,5 @@ cacheListEmpty: 'Пока пусто — открывайте страницы �
 cacheRemoveEntry: 'Удалить запись',
 cacheEntryNotFound: 'Не найдено',
 cacheListMore: '…и ещё {count}',
+settingsWord: 'Настройки',
 };

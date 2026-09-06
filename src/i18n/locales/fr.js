@@ -77,4 +77,5 @@ cacheListEmpty: 'Rien pour l’instant — ouvrez des pages du magasin, elles ap
 cacheRemoveEntry: 'Supprimer cette entrée',
 cacheEntryNotFound: 'Introuvable',
 cacheListMore: '…et {count} autres',
+settingsWord: 'Paramètres',
 };

@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.5] - 2026-09-06
+
+### Changed
+
+- Tooltip game title links to the GameStatus game page (same URL as the badge)
+
+## [1.8.4] - 2026-09-06
+
+### Changed
+
+- Settings opener button label without the gear icon (reverted)
+
+## [1.8.3] - 2026-09-06
+
+### Changed
+
+- Settings opener button shows a gear icon and a "Settings · GameStatus" label (new `settingsWord` key in all locales)
+
 ## [1.8.2] - 2026-09-06
 
 ### Fixed
@@ -212,10 +230,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Status badges on Steam store game cards and game pages (data from GameStatus.info)
 - Rich hover tooltips with protection, dates, hardware specs, and links
 - Lazy loading via `IntersectionObserver` and request queue (max 4 concurrent)
-- Local response cache with positive (6 h) and negative (24 h) TTL
 - UI localization for 10 languages based on browser locale (fallback: English)
 - Tampermonkey / Violentmonkey / Greasemonkey-compatible metadata and auto-update URLs
 
+[1.8.5]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.8.5
+[1.8.4]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.8.4
+[1.8.3]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.8.3
 [1.8.2]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.8.2
 [1.8.1]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.8.1
 [1.8.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.8.0

@@ -77,4 +77,5 @@ cacheListEmpty: 'Noch nichts — Shopseiten öffnen, dann erscheinen sie hier.',
 cacheRemoveEntry: 'Diesen Eintrag entfernen',
 cacheEntryNotFound: 'Nicht gefunden',
 cacheListMore: '…und {count} weitere',
+settingsWord: 'Einstellungen',
 };
