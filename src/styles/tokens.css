@@ -1,0 +1,28 @@
+:root {
+  --gs-accent: #66c0f4;
+  --gs-accent-soft: #67c1f5;
+  --gs-bg: #171d25;
+  --gs-bg-deep: #0e1319;
+  --gs-panel: #1b2838;
+  --gs-text: #c7d5e0;
+  --gs-text-strong: #fff;
+  --gs-muted: #8f98a0;
+  --gs-green: #a4d007;
+  --gs-line: rgba(255, 255, 255, 0.1);
+  --gs-card-badge-font: 12px;
+  --gs-card-badge-lh: 20px;
+  --gs-card-badge-gap: 6px;
+  --gs-card-badge-pad-x: 8px;
+  --gs-card-badge-dot: 5px;
+  --gs-card-badge-loading-dot: 12px;
+  --gs-chart-badge-font: 11px;
+  --gs-chart-badge-lh: 18px;
+  --gs-chart-badge-pad-x: 7px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .gs-steam-badge,
+  .gs-steam-badge__tooltip {
+    transition: none;
+  }
+}

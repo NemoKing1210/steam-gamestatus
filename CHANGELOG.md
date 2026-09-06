@@ -5,6 +5,19 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Changed
+
+- Settings open like Steam Region Block Bypass: entry lives in the account dropdown menu (logged-in) with a compact header-button fallback (logged-out); the panel is now a centered modal over a dimmed overlay with a version badge in the header, body scroll lock, and close on overlay click / Escape instead of the floating popover near the header button
+- Settings panel split into Badge / Cache / About tabs (labels reuse `sectionBadge` / `sectionCache`, new `tabAbout` + `aboutBlurb` keys in all locales); repo link moved from the footer into the About pane, footer keeps only Save actions
+- Settings About tab renamed to “About the script” in all locales; About pane restyled with an author card (GitHub profile link via new `AUTHOR_URL` constant)
+- Settings: interface language selector (Auto + 10 locales) at the top of the General tab — panel retranslates instantly on change, badges/tooltips need a page reload
+- Settings General tab (renamed from Badge) and a richer Cache tab like Region Block Bypass: storage meter with found/not-found segments against a soft 2 MB budget, fill-percent badge on the tab, stored-lookup list with per-entry remove, kept duration setting and clear-all
+- Cache tab badge shows fill percent (not entry count); stored lookups collapsed by default with a count toggle; panel header and footer pinned via sticky positioning
+- Fixed unclosed Cache pane swallowing the About pane (About tab opened empty); cache tab badge shows bare percent; panel clips its scroller so the scrollbar never laps onto header/footer
+- Internal: monolith `steam-gamestatus.user.js` split into `src/` modules (core, api, features, i18n, utils, styles) with a Vite + `vite-plugin-monkey` build (`npm run build` regenerates the root `.user.js` / `.meta.js`); no user-visible changes
+
 ## [1.4.7] - 2026-07-13
 
 ### Added
