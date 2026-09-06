@@ -88,5 +88,7 @@ cardDisplayHotkey: 'クリック + キー',
 displayKey: 'トリガーキー',
 displayKeyHint: 'このキーを押しながらゲームをクリックするとカードを開きます。キーなしのクリックは通常通り移動します。',
 displayKeyPress: 'キーを押してください…',
+cardPosition: 'カードの表示位置',
+cardPositionHint: 'GameStatus カードをゲームのどちら側に優先して開くか。選んだ側はあくまで優先で、スペースが足りない場合は入る次の側に自動で開きます。',
 badgeDisabledHint: '位置とサイズは「カードにバッジ表示」モードでのみ有効です。',
 };

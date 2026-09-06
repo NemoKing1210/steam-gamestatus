@@ -88,5 +88,7 @@ cardDisplayHotkey: 'Clic + touche',
 displayKey: 'Touche',
 displayKeyHint: 'Maintenez cette touche et cliquez sur un jeu pour ouvrir sa fiche. Sans la touche, le clic navigue normalement.',
 displayKeyPress: 'Appuyez sur une touche…',
+cardPosition: 'Position de la carte',
+cardPositionHint: 'Côté du jeu où la carte GameStatus préfère s’ouvrir. Le côté choisi n’est qu’une préférence : sans assez de place, la carte s’ouvre du côté suivant qui convient.',
 badgeDisabledHint: 'La position et la taille ne s’appliquent qu’en mode « Badge sur les fiches ».',
 };

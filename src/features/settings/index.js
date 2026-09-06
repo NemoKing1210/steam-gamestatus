@@ -8,6 +8,7 @@ import {
   normalizeBadgeVertical,
   normalizeCacheHours,
   normalizeCardDisplay,
+  normalizeCardPosition,
   normalizeDisplayKey,
   normalizeLanguage,
   setSettingsChangeListener,
@@ -165,6 +166,7 @@ function updateSettingsButtonState() {
     settings.badgeHorizontal !== DEFAULT_SETTINGS.badgeHorizontal ||
     settings.badgeSize !== DEFAULT_SETTINGS.badgeSize ||
     settings.cardDisplay !== DEFAULT_SETTINGS.cardDisplay ||
+    settings.cardPosition !== DEFAULT_SETTINGS.cardPosition ||
     settings.displayKey !== DEFAULT_SETTINGS.displayKey ||
     settings.showMissingBadge !== DEFAULT_SETTINGS.showMissingBadge ||
     settings.language !== DEFAULT_SETTINGS.language;
@@ -235,6 +237,16 @@ function ensurePanel() {
           <button type="button" class="gs-btn gs-btn--ghost" id="gs-display-key"></button>
         </div>
         <p class="gs-hint" id="gs-display-key-hint" hidden>${escapeHtml(t('displayKeyHint'))}</p>
+        <label class="gs-field">
+          <span class="gs-field__label">${escapeHtml(t('cardPosition'))}</span>
+          <select id="gs-card-position">
+            <option value="left">${escapeHtml(t('posLeft'))}</option>
+            <option value="right">${escapeHtml(t('posRight'))}</option>
+            <option value="top">${escapeHtml(t('posTop'))}</option>
+            <option value="bottom">${escapeHtml(t('posBottom'))}</option>
+          </select>
+        </label>
+        <p class="gs-hint">${escapeHtml(t('cardPositionHint'))}</p>
       </div>
       <div class="gs-panel__section" id="gs-badge-section">
         <div class="gs-panel__section-title"><span class="gs-panel__section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z"/></svg></span><span>${escapeHtml(t('sectionBadge'))}</span></div>
@@ -530,6 +542,7 @@ function fillPanelForm() {
   panel.querySelector('#gs-badge-horizontal').value = normalizeBadgeHorizontal(settings.badgeHorizontal);
   panel.querySelector('#gs-badge-size').value = normalizeBadgeSize(settings.badgeSize);
   panel.querySelector('#gs-card-display').value = normalizeCardDisplay(settings.cardDisplay);
+  panel.querySelector('#gs-card-position').value = normalizeCardPosition(settings.cardPosition);
   panel.querySelector('#gs-display-key').textContent = prettyKeyLabel(
     normalizeDisplayKey(settings.displayKey)
   );
@@ -556,6 +569,7 @@ function persistPanelForm() {
     badgeHorizontal: panel.querySelector('#gs-badge-horizontal').value,
     badgeSize: panel.querySelector('#gs-badge-size').value,
     cardDisplay: panel.querySelector('#gs-card-display').value,
+    cardPosition: panel.querySelector('#gs-card-position').value,
     showMissingBadge: panel.querySelector('#gs-show-missing').checked,
     cacheHours: normalizeCacheHours(panel.querySelector('#gs-cache-hours').value),
     language: panel.querySelector('#gs-language').value,

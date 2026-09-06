@@ -20,6 +20,11 @@ export function normalizeBadgeHorizontal(value) {
   return value === 'right' ? 'right' : 'left';
 }
 
+export function normalizeCardPosition(value) {
+  if (value === 'right' || value === 'top' || value === 'bottom') return value;
+  return 'left';
+}
+
 export function normalizeBadgeSize(value) {
   if (value === 'small' || value === 'large' || value === 'xlarge') return value;
   return 'medium';
@@ -48,6 +53,7 @@ export function loadSettings() {
     badgeHorizontal: normalizeBadgeHorizontal(raw.badgeHorizontal),
     badgeSize: normalizeBadgeSize(raw.badgeSize),
     cardDisplay: normalizeCardDisplay(raw.cardDisplay),
+    cardPosition: normalizeCardPosition(raw.cardPosition),
     displayKey: normalizeDisplayKey(raw.displayKey),
     showMissingBadge: raw.showMissingBadge !== false,
     language: normalizeLanguage(raw.language),
@@ -75,6 +81,7 @@ export function saveSettings(next) {
     badgeVertical: normalizeBadgeVertical(next.badgeVertical ?? settings.badgeVertical),
     badgeHorizontal: normalizeBadgeHorizontal(next.badgeHorizontal ?? settings.badgeHorizontal),
     cardDisplay: normalizeCardDisplay(next.cardDisplay ?? settings.cardDisplay),
+    cardPosition: normalizeCardPosition(next.cardPosition ?? settings.cardPosition),
     badgeSize: normalizeBadgeSize(next.badgeSize ?? settings.badgeSize),
     displayKey: normalizeDisplayKey(next.displayKey ?? settings.displayKey),
     showMissingBadge:

@@ -18,6 +18,7 @@ export const DEFAULT_SETTINGS = {
   badgeHorizontal: 'left',
   badgeSize: 'medium',
   cardDisplay: 'badge',
+  cardPosition: 'left',
   displayKey: 'ShiftLeft',
   showMissingBadge: true,
 };

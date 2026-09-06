@@ -88,5 +88,7 @@ cardDisplayHotkey: 'Clique + tecla',
 displayKey: 'Tecla',
 displayKeyHint: 'Segure esta tecla e clique num jogo para abrir seu cartão. Sem a tecla, o clique navega normalmente.',
 displayKeyPress: 'Pressione uma tecla…',
+cardPosition: 'Posição do cartão',
+cardPositionHint: 'Lado do jogo em que o cartão do GameStatus prefere abrir. O lado escolhido é apenas uma preferência: sem espaço suficiente, o cartão abre no próximo lado em que couber.',
 badgeDisabledHint: 'Posição e tamanho valem apenas no modo «Selo nos cartões».',
 };

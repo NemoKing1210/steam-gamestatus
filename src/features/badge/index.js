@@ -1,7 +1,9 @@
 import { BADGE_CLASS, DONATE_URL, REPO_URL, SITE_BASE } from '../../core/constants.js';
+import { getSettings, normalizeCardPosition } from '../../core/settings.js';
 import { buildApiUrl } from '../../api/gamestatus.js';
 import { t } from '../../i18n/index.js';
 import { escapeAttr, escapeHtml } from '../../utils/html.js';
+import { resolveTooltipPlacement } from '../../utils/placement.js';
 import {
   formatDate,
   formatScore,
@@ -254,24 +256,16 @@ export function showTooltipHtml(target, html) {
 
   const rect = target.getBoundingClientRect();
   const tipRect = tip.getBoundingClientRect();
-  const pad = 15;
-  let left = rect.left;
-  let top = rect.top - tipRect.height - 7;
-
-  if (top < pad) {
-    top = rect.bottom + 7;
-  }
-
-  if (top + tipRect.height > window.innerHeight - pad) {
-    top = Math.max(pad, rect.top - tipRect.height - 7);
-  }
-
-  if (left + tipRect.width > window.innerWidth - pad) {
-    left = window.innerWidth - tipRect.width - pad;
-  }
-
-  tip.style.left = `${Math.max(pad, left)}px`;
-  tip.style.top = `${Math.max(pad, top)}px`;
+  const { left, top } = resolveTooltipPlacement({
+    preferred: normalizeCardPosition(getSettings().cardPosition),
+    anchor: rect,
+    tipWidth: tipRect.width,
+    tipHeight: tipRect.height,
+    viewportWidth: window.innerWidth,
+    viewportHeight: window.innerHeight,
+  });
+  tip.style.left = `${left}px`;
+  tip.style.top = `${top}px`;
 }
 
 export function showTooltipForElement(target, entry) {

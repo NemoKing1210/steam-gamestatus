@@ -88,5 +88,7 @@ cardDisplayHotkey: 'Klick + Taste',
 displayKey: 'Taste',
 displayKeyHint: 'Halte diese Taste und klicke auf ein Spiel, um seine Karte zu öffnen. Ohne Taste navigiert der Klick wie gewohnt.',
 displayKeyPress: 'Taste drücken…',
+cardPosition: 'Position der Karte',
+cardPositionHint: 'An welcher Seite des Spiels die GameStatus-Karte bevorzugt erscheint. Die gewählte Seite ist nur eine Präferenz: Ist dort kein Platz, öffnet sich die Karte an der nächsten Seite mit Platz.',
 badgeDisabledHint: 'Position und Größe gelten nur im Modus „Badge auf den Karten“.',
 };

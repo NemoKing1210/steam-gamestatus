@@ -88,5 +88,7 @@ cardDisplayHotkey: '클릭 + 키',
 displayKey: '트리거 키',
 displayKeyHint: '이 키를 누른 채 게임을 클릭하면 카드가 열립니다. 키 없이 클릭하면 평소처럼 이동합니다.',
 displayKeyPress: '키를 누르세요…',
+cardPosition: '카드 위치',
+cardPositionHint: 'GameStatus 카드가 게임의 어느 쪽에 열릴지 우선순위입니다. 선택한 쪽은 우선일 뿐이며, 공간이 부족하면 들어갈 수 있는 다음 쪽에 자동으로 열립니다.',
 badgeDisabledHint: '위치와 크기는 “카드에 배지 표시” 모드에서만 적용됩니다.',
 };

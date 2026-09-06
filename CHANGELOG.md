@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.13.0] - 2026-09-07
+
+### Added
+
+- Card position setting (Display section): which side of the game the GameStatus card prefers to open on, default Left. The chosen side is only a priority — without enough room in the viewport the card opens on the next side that fits, so placement stays adaptive across badge tooltips and all card display modes (new `cardPosition` setting, `cardPosition` / `cardPositionHint` keys in all locales)
+
 ## [1.12.5] - 2026-09-07
 
 ### Changed
@@ -314,6 +320,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI localization for 10 languages based on browser locale (fallback: English)
 - Tampermonkey / Violentmonkey / Greasemonkey-compatible metadata and auto-update URLs
 
+[1.13.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.13.0
 [1.12.5]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.12.5
 [1.12.4]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.12.4
 [1.12.3]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.12.3

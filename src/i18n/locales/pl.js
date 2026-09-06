@@ -88,5 +88,7 @@ cardDisplayHotkey: 'Klik + klawisz',
 displayKey: 'Klawisz',
 displayKeyHint: 'Przytrzymaj ten klawisz i kliknij grę, aby otworzyć kartę. Klik bez klawisza działa jak zwykle.',
 displayKeyPress: 'Naciśnij klawisz…',
+cardPosition: 'Pozycja karty',
+cardPositionHint: 'Po której stronie gry karta GameStatus ma się preferencyjnie otwierać. Wybrana strona to tylko preferencja: gdy brakuje miejsca, karta otwiera się po następnej stronie, która się zmieści.',
 badgeDisabledHint: 'Pozycja i rozmiar działają tylko w trybie „Odznaka na kartach”.',
 };

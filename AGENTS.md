@@ -48,6 +48,7 @@ steam-gamestatus/
 │   │   ├── slug.js            # slugify, /app/{id} parsing, slug validation
 │   │   ├── steam-dom.js       # Title extraction, slug candidates, page helpers
 │   │   ├── format.js          # Dates, scores, localized API fields
+│   │   ├── placement.js       # Viewport-adaptive popover card placement
 │   │   └── html.js            # escapeHtml / escapeAttr
 │   └── styles/
 │       ├── app.css            # All injected styles (GM_addStyle via build)
@@ -103,7 +104,7 @@ Single place for magic values. Notable entries:
   `SETTINGS_KEY = 'gs_steam_settings'`.
 - `DEFAULT_SETTINGS`: `cacheHours: 6`, `badgeVertical: 'top'`,
   `badgeHorizontal: 'left'`, `badgeSize: 'medium'`, `cardDisplay: 'badge'`,
-  `displayKey: 'ShiftLeft'`, `showMissingBadge: true`, `language: 'auto'`.
+  `cardPosition: 'left'`, `displayKey: 'ShiftLeft'`, `showMissingBadge: true`.
 - Throttle/shape timings: `MAX_CONCURRENT = 2`, `REQUEST_DELAY_MS = 75`,
   `MAX_SLUG_ATTEMPTS = 2`, `HYDRATE_BATCH_SIZE = 3`,
   `CARD_ROOT_MARGIN = '80px 0px'`, `SCAN_DEBOUNCE_MS = 450`,
@@ -122,7 +123,8 @@ Module-level `settings` object loaded once at import (`loadSettings()`).
 Public API: `loadSettings`, `getSettings`, `saveSettings`,
 `setSettingsChangeListener`, `getCacheTtlMs`, `applyBadgeAppearance`, plus the
 `normalize*` validators (`normalizeCacheHours` clamps to `0..168`,
-`normalizeBadgeVertical/Horizontal/Size` fall back to defaults on junk).
+`normalizeBadgeVertical/Horizontal/Size`, `normalizeCardPosition` fall back to
+defaults on junk).
 
 Two wiring details that must survive refactors:
 
@@ -239,6 +241,16 @@ Failures resolve to `null` — never throw into the resolution pipeline.
 - `truncateText()` (140 chars + `…`), `parseGameDate()` (null-safe),
   `formatScore()` (number passthrough, null-safe).
 
+### `src/utils/placement.js` — adaptive popover placement
+
+Pure geometry (no DOM/GM — Node-smoke-testable). `cardPosition` is only a
+preference: `tooltipSideOrder()` yields preferred → opposite → perpendicular
+pair; `resolveTooltipPlacement()` returns the first side whose placement fits
+fully inside the padded viewport (`TOOLTIP_PAD`/`TOOLTIP_GAP`), else clamps
+the side with the largest visible area. Left/right sides center vertically on
+the anchor, top/bottom center horizontally. `showTooltipHtml()` in
+`features/badge` feeds it the anchor rect and measured tooltip size.
+
 ### `src/i18n`
 
 - `meta.js`: `SUPPORTED_LOCALES` (`en ru zh es pt de fr ja ko pl`),
@@ -322,7 +334,10 @@ rendering. Game-page chips ignore badge position/size settings by design.
   URL list by design.
 - `renderBadge(entry, { isPage, isChart, appId })` and `createLoaderBadge()`
   build badge nodes; `bindTooltip()` lazily fills a **singleton**
-  `.gs-steam-badge__tooltip` on hover/focus. All external strings/URLs pass
+  `.gs-steam-badge__tooltip` on hover/focus. `showTooltipHtml()` places the
+  popover through `resolveTooltipPlacement()` (`utils/placement.js`) — the
+  `cardPosition` side is a preference, placement flips to the next side with
+  viewport room. All external strings/URLs pass
   through `escapeHtml`/`escapeAttr`.
 - `ensureRelativePosition()` is defined here and imported by `cards` (single
   definition).
@@ -343,7 +358,8 @@ rendering. Game-page chips ignore badge position/size settings by design.
   tab bar (`data-gs-tab`: general / cache / about, labels `tabGeneral` /
   `sectionCache` + `tabAbout`) over a scrollable `.gs-panel__body` with matching
   `data-gs-pane` panes — General (interface language with live panel retranslate,
-  Display section: mode select plus the hotkey recorder button (`syncDisplayControls()`
+  Display section: card display mode select, card-position select for the popover
+  card, plus the hotkey recorder button (`syncDisplayControls()`
   gates badge controls + `recordDisplayKey()` capture listener), badge position/size,
   show-missing pill with hint), Cache (usage meter with
   found/missing segments + count badge on the tab via `cache-pane.js`
@@ -431,6 +447,7 @@ Stored under `gs_steam_settings` (`getSettings()` is the only reader;
 | `badgeHorizontal` | `'left'` | `'left'` / `'right'`; cards only |
 | `badgeSize` | `'medium'` | `'small'` / `'medium'` / `'large'` / `'xlarge'`; cards only |
 | `cardDisplay` | `'badge'` | `'badge'` / `'hover'` / `'context'` / `'hotkey'`; non-badge modes hide card badges |
+| `cardPosition` | `'left'` | `'left'` / `'right'` / `'top'` / `'bottom'`; preferred side for the popover card — placement flips to the next side with room |
 | `displayKey` | `'ShiftLeft'` | `e.code` for the hotkey mode (`ShiftLeft` matches `e.shiftKey`) |
 | `showMissingBadge` | `true` | `false` leaves unmatched cards unmarked; hover/click modes always show the card |
 | `language` | `'auto'` | `'auto'` (browser) or a `SUPPORTED_LOCALES` code; panel live-retranslates, badges need reload |

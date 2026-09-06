@@ -87,5 +87,7 @@ cardDisplayHotkey: '左键 + 按键',
 displayKey: '触发按键',
 displayKeyHint: '按住此键并左键点击游戏以打开卡片。不按键点击则正常跳转。',
 displayKeyPress: '请按键…',
+cardPosition: '卡片位置',
+cardPositionHint: 'GameStatus 卡片优先在游戏的哪一侧打开。所选的一侧只是优先项：空间不足时，卡片会自动在下一个有空间的一侧打开。',
 badgeDisabledHint: '徽章位置和大小仅在“在卡片上显示徽章”模式下生效。',
 };

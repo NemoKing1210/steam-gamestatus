@@ -88,5 +88,7 @@ cardDisplayHotkey: 'Left click + key',
 displayKey: 'Trigger key',
 displayKeyHint: 'Hold this key and left-click a game to open its card. Clicking without the key navigates as usual.',
 displayKeyPress: 'Press a key…',
+cardPosition: 'Card position',
+cardPositionHint: 'Which side of the game the GameStatus card prefers to open on. The chosen side is only a preference — without enough room, the card opens on the next side that fits.',
 badgeDisabledHint: 'Badge position and size apply only in “Badge on cards” display mode.',
 };
