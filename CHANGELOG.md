@@ -7,16 +7,62 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.2] - 2026-09-06
+
+### Fixed
+
+- Settings Cache pane was missing its closing tag, swallowing the About pane (About tab opened empty)
+- Cache tab badge shows a bare fill percent without the "full" caption
+- Settings modal clips its scroller so the scrollbar never laps onto the header/footer
+
+## [1.8.1] - 2026-09-06
+
+### Changed
+
+- Cache tab badge shows fill percent instead of the entry count
+- Stored lookups are collapsed by default behind a count toggle
+- Panel header and footer pinned via sticky positioning
+
+## [1.8.0] - 2026-09-06
+
+### Changed
+
+- Settings Badge tab renamed to General (`tabGeneral` in all locales)
+- Richer Cache tab like Region Block Bypass: storage meter with found/not-found segments against a soft 2 MB budget, fill-percent badge on the tab, stored-lookup list (capped at 100) with per-entry remove; duration setting and clear-all kept
+
+## [1.7.0] - 2026-09-06
+
+### Added
+
+- Settings interface language selector (Auto + 10 locales) at the top of the General tab — the panel retranslates instantly on change, badges/tooltips need a page reload
+
+## [1.6.2] - 2026-09-06
+
+### Changed
+
+- About author card without the avatar image (`AUTHOR_AVATAR_URL` removed)
+
+## [1.6.1] - 2026-09-06
+
+### Changed
+
+- Settings About tab renamed to "About the script" in all locales; About pane restyled with an author card (avatar + GitHub profile link via new `AUTHOR_URL` constant)
+
+## [1.6.0] - 2026-09-06
+
+### Changed
+
+- Settings panel split into Badge / Cache / About tabs (labels reuse `sectionBadge` / `sectionCache`, new `tabAbout` + `aboutBlurb` keys in all locales); repo link moved from the footer into the About pane, footer keeps only Save actions
+
+## [1.5.0] - 2026-09-06
+
 ### Changed
 
 - Settings open like Steam Region Block Bypass: entry lives in the account dropdown menu (logged-in) with a compact header-button fallback (logged-out); the panel is now a centered modal over a dimmed overlay with a version badge in the header, body scroll lock, and close on overlay click / Escape instead of the floating popover near the header button
-- Settings panel split into Badge / Cache / About tabs (labels reuse `sectionBadge` / `sectionCache`, new `tabAbout` + `aboutBlurb` keys in all locales); repo link moved from the footer into the About pane, footer keeps only Save actions
-- Settings About tab renamed to “About the script” in all locales; About pane restyled with an author card (GitHub profile link via new `AUTHOR_URL` constant)
-- Settings: interface language selector (Auto + 10 locales) at the top of the General tab — panel retranslates instantly on change, badges/tooltips need a page reload
-- Settings General tab (renamed from Badge) and a richer Cache tab like Region Block Bypass: storage meter with found/not-found segments against a soft 2 MB budget, fill-percent badge on the tab, stored-lookup list with per-entry remove, kept duration setting and clear-all
-- Cache tab badge shows fill percent (not entry count); stored lookups collapsed by default with a count toggle; panel header and footer pinned via sticky positioning
-- Fixed unclosed Cache pane swallowing the About pane (About tab opened empty); cache tab badge shows bare percent; panel clips its scroller so the scrollbar never laps onto header/footer
-- Internal: monolith `steam-gamestatus.user.js` split into `src/` modules (core, api, features, i18n, utils, styles) with a Vite + `vite-plugin-monkey` build (`npm run build` regenerates the root `.user.js` / `.meta.js`); no user-visible changes
+
+### Internal
+
+- Monolith `steam-gamestatus.user.js` split into `src/` modules (core, api, features, i18n, utils, styles) with a Vite + `vite-plugin-monkey` build (`npm run build` regenerates the root `.user.js` / `.meta.js`); no user-visible changes
 
 ## [1.4.7] - 2026-07-13
 
@@ -147,30 +193,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- Scroll performance: incremental DOM scans, filtered MutationObserver, pause hydration during scroll
-- API queue: max 2 concurrent requests with staggered starts, cache fast-path before enqueue
+- Scroll performance: incremental DOM scans, filtered MutationObserver, scroll-aware hydration batching, pause hydration during scroll
+- API queue: max 2 concurrent requests with staggered starts (`REQUEST_DELAY_MS`), cache fast-path before enqueue
 - In-memory cache with debounced persistence to `GM_setValue`
-- Reduced prefetch margin (`80px`), removed `backdrop-filter` on badges for lighter compositing
-
-### Fixed
-
-- Scroll jank caused by full-page `querySelectorAll` on every DOM mutation
-- Redundant cache parsing and queueing for already-cached games
-
-## [1.1.0] - 2026-07-09
-
-### Changed
-
-- Scroll performance: incremental DOM scanning, filtered MutationObserver, scroll-aware hydration batching
-- API queue: max 2 concurrent requests with staggered starts (`REQUEST_DELAY_MS`)
-- In-memory cache with debounced persistence to `GM_setValue`
-- Cache fast-path bypasses the request queue for hits
-- Reduced prefetch margin (`CARD_ROOT_MARGIN`) and removed `backdrop-filter` from badges
+- Reduced prefetch margin (`80px` / `CARD_ROOT_MARGIN`), removed `backdrop-filter` on badges for lighter compositing
 - Lazy tooltip binding on first hover/focus
 
 ### Fixed
 
-- Scroll jank caused by full-page DOM rescans on every Steam mutation
+- Scroll jank caused by full-page DOM rescans (`querySelectorAll`) on every Steam mutation
+- Redundant cache parsing and queueing for already-cached games
 - Main-thread blocking from synchronous cache read/write during rapid card hydration
 
 ## [1.0.0] - 2026-07-09
@@ -184,6 +216,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI localization for 10 languages based on browser locale (fallback: English)
 - Tampermonkey / Violentmonkey / Greasemonkey-compatible metadata and auto-update URLs
 
+[1.8.2]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.8.2
+[1.8.1]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.8.1
+[1.8.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.8.0
+[1.7.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.7.0
+[1.6.2]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.6.2
+[1.6.1]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.6.1
+[1.6.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.6.0
+[1.5.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.5.0
+[1.4.7]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.4.7
+[1.4.6]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.4.6
+[1.4.5]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.4.5
+[1.4.4]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.4.4
+[1.4.3]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.4.3
+[1.4.2]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.4.2
+[1.4.1]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.4.1
+[1.4.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.4.0
 [1.3.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.3.0
 [1.2.1]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.2.1
 [1.2.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.2.0

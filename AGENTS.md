@@ -456,6 +456,10 @@ Versioning:
   maintenance, and other backward-compatible small changes.
 
 Keep the version synchronized in `package.json` and `package-lock.json`.
+`CHANGELOG.md` versions with it: record every user-visible change under
+`[Unreleased]`; when bumping the version, move those bullets into a new
+`## [X.Y.Z] - YYYY-MM-DD` section (with a matching link reference at the
+bottom) and leave `[Unreleased]` empty.
 The userscript metadata is generated from `package.json`; run
 `npm run build` after bumping the version to refresh both root artifacts.
 
