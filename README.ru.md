@@ -4,7 +4,7 @@
 
 [![Установить userscript](https://img.shields.io/badge/Install-userscript-66c0f4?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/steam-gamestatus/main/steam-gamestatus.user.js)
 [![Лицензия: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Версия](https://img.shields.io/badge/version-1.13.0-green?style=for-the-badge)](CHANGELOG.md)
+[![Версия](https://img.shields.io/badge/version-1.14.1-green?style=for-the-badge)](CHANGELOG.md)
 
 Пользовательский скрипт для магазина Steam и Steam Community, который добавляет дополнительную информацию об играх с [GameStatus.info](https://gamestatus.info): защиту, даты выхода, оценки, характеристики ПК и многое другое.
 
@@ -118,6 +118,15 @@ https://raw.githubusercontent.com/NemoKing1210/steam-gamestatus/main/steam-games
 - [CONTRIBUTING.md](CONTRIBUTING.md) — процесс для контрибьюторов и чек-лист PR
 - [AGENTS.md](AGENTS.md) — инструкции для ИИ-агентов
 - [SECURITY.md](SECURITY.md) — политика безопасности и приватные отчёты
+
+## Другие юзерскрипты
+
+Другие юзерскрипты того же автора:
+
+| Юзерскрипт | Что делает |
+|:-----------|:-----------|
+| [![Steam Plus](https://img.shields.io/badge/Steam_Plus-1b2838?style=flat-square&logo=steam&logoColor=66c0f4)](https://github.com/NemoKing1210/steam-plus) | Полная панель настроек и перевод контента Steam Store и Steam Community прямо на странице — описания игр, обзоры, комментарии в профилях и новости |
+| [![Steam Region Block Bypass](https://img.shields.io/badge/Steam_Region_Block_Bypass-1b2838?style=flat-square&logo=steam&logoColor=66c0f4)](https://github.com/NemoKing1210/steam-region-block-bypass) | Восстанавливает страницу товара в магазине Steam, когда Steam показывает «Этот товар в настоящее время недоступен в вашем регионе» |
 
 ## Источник данных
 

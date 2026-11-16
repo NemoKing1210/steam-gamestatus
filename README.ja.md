@@ -4,7 +4,7 @@
 
 [![ユーザースクリプトをインストール](https://img.shields.io/badge/Install-userscript-66c0f4?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/steam-gamestatus/main/steam-gamestatus.user.js)
 [![ライセンス: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![バージョン](https://img.shields.io/badge/version-1.13.0-green?style=for-the-badge)](CHANGELOG.md)
+[![バージョン](https://img.shields.io/badge/version-1.14.1-green?style=for-the-badge)](CHANGELOG.md)
 
 Steam ストアと Steam コミュニティ向けのユーザースクリプトで、[GameStatus.info](https://gamestatus.info) からゲームの追加情報（保護、発売日、スコア、ハードウェア要件など）を表示します。
 
@@ -118,6 +118,15 @@ Steam ヘッダーの **GameStatus**（またはユーザースクリプトマ�
 - [CONTRIBUTING.md](CONTRIBUTING.md) — コントリビューションの流れと PR チェックリスト
 - [AGENTS.md](AGENTS.md) — AI コーディングエージェント向けの指示
 - [SECURITY.md](SECURITY.md) — セキュリティポリシーと非公開での報告
+
+## その他のユーザースクリプト
+
+同じ作者による他のユーザースクリプト：
+
+| ユーザースクリプト | できること |
+|:-------------------|:-----------|
+| [![Steam Plus](https://img.shields.io/badge/Steam_Plus-1b2838?style=flat-square&logo=steam&logoColor=66c0f4)](https://github.com/NemoKing1210/steam-plus) | Steam ストアと Steam コミュニティのコンテンツ（ゲーム説明、レビュー、プロフィールコメント、ニュース）をページ上で翻訳する充実した設定パネル |
+| [![Steam Region Block Bypass](https://img.shields.io/badge/Steam_Region_Block_Bypass-1b2838?style=flat-square&logo=steam&logoColor=66c0f4)](https://github.com/NemoKing1210/steam-region-block-bypass) | Steam が「このアイテムはお住まいの地域では現在ご利用いただけません」と表示したときにストアの製品ページを復元します |
 
 ## データソース
 

@@ -4,7 +4,7 @@
 
 [![유저스크립트 설치](https://img.shields.io/badge/Install-userscript-66c0f4?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/steam-gamestatus/main/steam-gamestatus.user.js)
 [![라이선스: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![버전](https://img.shields.io/badge/version-1.13.0-green?style=for-the-badge)](CHANGELOG.md)
+[![버전](https://img.shields.io/badge/version-1.14.1-green?style=for-the-badge)](CHANGELOG.md)
 
 Steam 상점과 Steam 커뮤니티를 위한 유저스크립트로, [GameStatus.info](https://gamestatus.info)의 추가 게임 정보(보호, 출시일, 점수, 하드웨어 사양 등)를 표시합니다.
 
@@ -118,6 +118,15 @@ Steam 헤더의 **GameStatus**(또는 유저스크립트 관리자 메뉴)를 �
 - [CONTRIBUTING.md](CONTRIBUTING.md) — 기여 워크플로 및 PR 체크리스트
 - [AGENTS.md](AGENTS.md) — AI 코딩 에이전트 지침
 - [SECURITY.md](SECURITY.md) — 보안 정책 및 비공개 신고
+
+## 다른 사용자 스크립트
+
+같은 제작자의 다른 사용자 스크립트:
+
+| 사용자 스크립트 | 기능 |
+|:----------------|:-----|
+| [![Steam Plus](https://img.shields.io/badge/Steam_Plus-1b2838?style=flat-square&logo=steam&logoColor=66c0f4)](https://github.com/NemoKing1210/steam-plus) | Steam 상점과 Steam 커뮤니티 콘텐츠(게임 설명, 리뷰, 프로필 댓글, 뉴스)를 페이지에서 바로 번역하는 전체 설정 패널 |
+| [![Steam Region Block Bypass](https://img.shields.io/badge/Steam_Region_Block_Bypass-1b2838?style=flat-square&logo=steam&logoColor=66c0f4)](https://github.com/NemoKing1210/steam-region-block-bypass) | Steam에서 "이 아이템은 현재 지역에서 이용할 수 없습니다"라고 표시될 때 상점 제품 페이지를 복원합니다 |
 
 ## 데이터 출처
 

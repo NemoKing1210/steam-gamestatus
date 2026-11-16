@@ -4,7 +4,7 @@
 
 [![安装用户脚本](https://img.shields.io/badge/Install-userscript-66c0f4?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/steam-gamestatus/main/steam-gamestatus.user.js)
 [![许可证：MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![版本](https://img.shields.io/badge/version-1.13.0-green?style=for-the-badge)](CHANGELOG.md)
+[![版本](https://img.shields.io/badge/version-1.14.1-green?style=for-the-badge)](CHANGELOG.md)
 
 一款用于 Steam 商店和 Steam 社区的用户脚本，从 [GameStatus.info](https://gamestatus.info) 添加额外的游戏信息——保护状态、发行日期、评分、硬件规格等。
 
@@ -118,6 +118,15 @@ https://raw.githubusercontent.com/NemoKing1210/steam-gamestatus/main/steam-games
 - [CONTRIBUTING.md](CONTRIBUTING.md) — 贡献流程与 PR 检查清单
 - [AGENTS.md](AGENTS.md) — AI 编码代理说明
 - [SECURITY.md](SECURITY.md) — 安全策略与私下报告
+
+## 其他用户脚本
+
+同一作者的其他用户脚本：
+
+| 用户脚本 | 功能 |
+|:---------|:-----|
+| [![Steam Plus](https://img.shields.io/badge/Steam_Plus-1b2838?style=flat-square&logo=steam&logoColor=66c0f4)](https://github.com/NemoKing1210/steam-plus) | 为 Steam 商店和社区提供完整的设置面板和页面内内容翻译 — 游戏简介、评测、个人资料评论和新闻 |
+| [![Steam Region Block Bypass](https://img.shields.io/badge/Steam_Region_Block_Bypass-1b2838?style=flat-square&logo=steam&logoColor=66c0f4)](https://github.com/NemoKing1210/steam-region-block-bypass) | 当 Steam 显示“该物品在您所在的地区目前不可用”时，恢复商店产品页面 |
 
 ## 数据来源
 

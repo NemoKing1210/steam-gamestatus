@@ -4,7 +4,7 @@
 
 [![Install userscript](https://img.shields.io/badge/Install-userscript-66c0f4?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/steam-gamestatus/main/steam-gamestatus.user.js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.13.0-green?style=for-the-badge)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.14.1-green?style=for-the-badge)](CHANGELOG.md)
 
 A userscript for the Steam store and Steam Community that adds extra game information from [GameStatus.info](https://gamestatus.info) — protection, release dates, scores, hardware specs, and more.
 
@@ -122,6 +122,15 @@ This section moved to dedicated guides:
 - [CONTRIBUTING.md](CONTRIBUTING.md) — contributor workflow and PR checklist
 - [AGENTS.md](AGENTS.md) — instructions for AI coding agents
 - [SECURITY.md](SECURITY.md) — security policy and private reporting
+
+## More userscripts
+
+Other userscripts by the same author:
+
+| Userscript | What it does |
+|:-----------|:-------------|
+| [![Steam Plus](https://img.shields.io/badge/Steam_Plus-1b2838?style=flat-square&logo=steam&logoColor=66c0f4)](https://github.com/NemoKing1210/steam-plus) | Full settings panel and on-page translation for Steam Store and Steam Community content — game descriptions, reviews, profile comments, and news |
+| [![Steam Region Block Bypass](https://img.shields.io/badge/Steam_Region_Block_Bypass-1b2838?style=flat-square&logo=steam&logoColor=66c0f4)](https://github.com/NemoKing1210/steam-region-block-bypass) | Restores the Steam store product page when Steam shows “This item is currently unavailable in your region” |
 
 ## Data source
 

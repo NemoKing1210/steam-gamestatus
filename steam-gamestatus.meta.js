@@ -10,7 +10,7 @@
 // @name:ko            Steam GameStatus
 // @name:pl            Steam GameStatus
 // @namespace          https://github.com/NemoKing1210/steam-gamestatus
-// @version            1.14.0
+// @version            1.14.1
 // @author             NemoKing1210
 // @description        Adds extra game info from gamestatus.info on Steam store cards and game pages
 // @description:ru     Добавляет доп. информацию с gamestatus.info на карточки Steam и страницы игр

@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.1] - 2026-11-16
+
+### Changed
+
+- README now lists other userscripts by the same author: [Steam Plus](https://github.com/NemoKing1210/steam-plus) and [Steam Region Block Bypass](https://github.com/NemoKing1210/steam-region-block-bypass), in all ten translations
+- Version badges in every README translation now match `package.json`
+
 ## [1.14.0] - 2026-11-16
 
 ### Added
@@ -334,6 +341,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI localization for 10 languages based on browser locale (fallback: English)
 - Tampermonkey / Violentmonkey / Greasemonkey-compatible metadata and auto-update URLs
 
+[1.14.1]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.14.1
 [1.14.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.14.0
 [1.13.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.13.0
 [1.12.5]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.12.5
