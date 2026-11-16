@@ -1,8 +1,10 @@
 # Steam GameStatus
 
+**English** · [Русский](README.ru.md) · [简体中文](README.zh.md) · [Español](README.es.md) · [Português](README.pt.md) · [Deutsch](README.de.md) · [Français](README.fr.md) · [日本語](README.ja.md) · [한국어](README.ko.md) · [Polski](README.pl.md)
+
 [![Install userscript](https://img.shields.io/badge/Install-userscript-66c0f4?style=for-the-badge)](https://raw.githubusercontent.com/NemoKing1210/steam-gamestatus/main/steam-gamestatus.user.js)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.4.7-green?style=for-the-badge)](CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.13.0-green?style=for-the-badge)](CHANGELOG.md)
 
 A userscript for the Steam store and Steam Community that adds extra game information from [GameStatus.info](https://gamestatus.info) — protection, release dates, scores, hardware specs, and more.
 
@@ -55,6 +57,7 @@ Managers compare the installed `@version` with the remote metadata to decide whe
 - **Color-coded statuses** — quick visual scan across a long list of games
 - **Lazy loading** — badges load only when cards scroll into view
 - **Smart caching** — responses are cached locally to reduce API load and speed up repeat visits
+- **API outage protection** — after repeated API failures the script pauses lookups for a configurable cooldown, warns you with a toast, and resumes automatically when the API is back
 - **Steam-like UI** — badges styled like Steam `.app_tag`, tooltips like store hover popovers
 - **10 UI languages** — English, Russian, Chinese, Spanish, Portuguese, German, French, Japanese, Korean, Polish (detected from browser locale)
 
@@ -104,6 +107,9 @@ Open **GameStatus** in the Steam header (or the userscript manager menu) to conf
 | Card position | Left | Where the GameStatus card opens next to a game; flips to the next side with room |
 | Badge size | Medium | Small / Medium / Large / Very large; card badges only |
 | Show “not in database” badges | On | When off, unmatched cards stay unmarked |
+| Pause when API fails | On | After repeated failures, badges pause for a cooldown and a toast explains why; cached badges stay visible |
+| Failures before pausing | 3 | Consecutive failed requests (2–10) |
+| Pause duration | 5 min | 1–60 minutes; the script retries automatically and restores badges when the API answers |
 | Cache duration (hours) | 6 | Applies to all cached lookups; max 168 (7 days) |
 | Clear cache | — | Immediate; does not require Save |
 
@@ -115,6 +121,7 @@ This section moved to dedicated guides:
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — how it works, repository layout, metadata, permissions
 - [CONTRIBUTING.md](CONTRIBUTING.md) — contributor workflow and PR checklist
 - [AGENTS.md](AGENTS.md) — instructions for AI coding agents
+- [SECURITY.md](SECURITY.md) — security policy and private reporting
 
 ## Data source
 

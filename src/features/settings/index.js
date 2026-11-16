@@ -1,8 +1,20 @@
-import { AUTHOR_URL, CACHE_HOURS_MAX, DEFAULT_SETTINGS, REPO_URL, SCRIPT_VERSION } from '../../core/constants.js';
+import {
+  API_GUARD_COOLDOWN_MAX,
+  API_GUARD_COOLDOWN_MIN,
+  API_GUARD_THRESHOLD_MAX,
+  API_GUARD_THRESHOLD_MIN,
+  AUTHOR_URL,
+  CACHE_HOURS_MAX,
+  DEFAULT_SETTINGS,
+  REPO_URL,
+  SCRIPT_VERSION,
+} from '../../core/constants.js';
 import {
   getSettings,
   saveSettings,
   resetSettings,
+  normalizeApiCooldownMinutes,
+  normalizeApiFailureThreshold,
   normalizeBadgeHorizontal,
   normalizeBadgeSize,
   normalizeBadgeVertical,
@@ -13,6 +25,12 @@ import {
   normalizeLanguage,
   setSettingsChangeListener,
 } from '../../core/settings.js';
+import {
+  getApiGuardStatus,
+  onApiGuardChange,
+  retryApiNow,
+  syncApiGuardSettings,
+} from '../../core/api-guard.js';
 import { dismissTooltip } from '../badge/index.js';
 import { refreshCardsForDisplayMode } from '../cards/index.js';
 import { clearGameCache, removeGameCacheEntry } from '../../core/cache.js';
@@ -169,7 +187,10 @@ function updateSettingsButtonState() {
     settings.cardPosition !== DEFAULT_SETTINGS.cardPosition ||
     settings.displayKey !== DEFAULT_SETTINGS.displayKey ||
     settings.showMissingBadge !== DEFAULT_SETTINGS.showMissingBadge ||
-    settings.language !== DEFAULT_SETTINGS.language;
+    settings.language !== DEFAULT_SETTINGS.language ||
+    settings.apiGuardEnabled !== DEFAULT_SETTINGS.apiGuardEnabled ||
+    settings.apiFailureThreshold !== DEFAULT_SETTINGS.apiFailureThreshold ||
+    settings.apiCooldownMinutes !== DEFAULT_SETTINGS.apiCooldownMinutes;
   if (dot) {
     dot.classList.toggle('is-on', customized);
     dot.title = customized ? t('on') : t('off');
@@ -247,6 +268,35 @@ function ensurePanel() {
           </select>
         </label>
         <p class="gs-hint">${escapeHtml(t('cardPositionHint'))}</p>
+      </div>
+      <div class="gs-panel__section" id="gs-api-guard-section">
+        <div class="gs-panel__section-title"><span class="gs-panel__section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z"/></svg></span><span>${escapeHtml(t('sectionApiGuard'))}</span></div>
+        <div class="gs-missing-row">
+          <label class="gs-switch">
+            <input type="checkbox" id="gs-api-guard" />
+            <span class="gs-switch__track"></span>
+            <span class="gs-switch__label">${escapeHtml(t('apiGuardEnabled'))}</span>
+          </label>
+          <span class="gs-pill" id="gs-api-guard-pill">${escapeHtml(t('on'))}</span>
+        </div>
+        <p class="gs-hint">${escapeHtml(t('apiGuardEnabledHint'))}</p>
+        <div id="gs-api-guard-options">
+          <label class="gs-field">
+            <span class="gs-field__label">${escapeHtml(t('apiGuardThreshold'))}</span>
+            <input type="number" id="gs-api-threshold" min="${API_GUARD_THRESHOLD_MIN}" max="${API_GUARD_THRESHOLD_MAX}" step="1" inputmode="numeric" />
+          </label>
+          <p class="gs-hint">${escapeHtml(t('apiGuardThresholdHint'))}</p>
+          <label class="gs-field">
+            <span class="gs-field__label">${escapeHtml(t('apiGuardCooldown'))}</span>
+            <input type="number" id="gs-api-cooldown" min="${API_GUARD_COOLDOWN_MIN}" max="${API_GUARD_COOLDOWN_MAX}" step="1" inputmode="numeric" />
+          </label>
+          <p class="gs-hint">${escapeHtml(t('apiGuardCooldownHint'))}</p>
+        </div>
+        <div class="gs-api-status" id="gs-api-status">
+          <span class="gs-api-status__dot" aria-hidden="true"></span>
+          <span class="gs-api-status__text" id="gs-api-status-text" aria-live="polite"></span>
+          <button type="button" class="gs-btn gs-btn--ghost" data-gs="api-retry" hidden>${escapeHtml(t('apiGuardRetry'))}</button>
+        </div>
       </div>
       <div class="gs-panel__section" id="gs-badge-section">
         <div class="gs-panel__section-title"><span class="gs-panel__section-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9.568 3H5.25A2.25 2.25 0 0 0 3 5.25v4.318c0 .597.237 1.17.659 1.591l9.581 9.581c.699.699 1.78.872 2.607.33a18.095 18.095 0 0 0 5.223-5.223c.542-.827.369-1.908-.33-2.607L11.16 3.66A2.25 2.25 0 0 0 9.568 3Z"/><path stroke-linecap="round" stroke-linejoin="round" d="M6 6h.008v.008H6V6Z"/></svg></span><span>${escapeHtml(t('sectionBadge'))}</span></div>
@@ -381,6 +431,7 @@ function ensurePanel() {
   });
   panel.querySelector('[data-gs="reset"]').addEventListener('click', () => {
     resetSettings();
+    syncApiGuardSettings();
     configureLocale(getSettings().language);
     fillPanelForm();
     refreshCardsForDisplayMode();
@@ -425,6 +476,11 @@ function ensurePanel() {
 
   const missingToggle = panel.querySelector('#gs-show-missing');
   missingToggle.addEventListener('change', () => syncMissingPill());
+  panel.querySelector('#gs-api-guard').addEventListener('change', () => syncApiGuardControls());
+  panel.querySelector('[data-gs="api-retry"]').addEventListener('click', () => {
+    retryApiNow();
+    syncApiGuardStatus();
+  });
   panel.querySelector('#gs-language').addEventListener('change', () => {
     const language = normalizeLanguage(panel.querySelector('#gs-language').value);
     saveSettings({ language });
@@ -484,6 +540,57 @@ function syncMissingPill() {
   const pill = panel.querySelector('#gs-show-missing-pill');
   pill.textContent = on ? t('on') : t('off');
   pill.classList.toggle('is-on', on);
+}
+
+function formatClock(timestamp) {
+  try {
+    return new Date(timestamp).toLocaleTimeString(undefined, {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  } catch {
+    return '';
+  }
+}
+
+function syncApiGuardStatus() {
+  const panel = document.getElementById('gs-panel');
+  if (!panel) return;
+  const text = panel.querySelector('#gs-api-status-text');
+  const dot = panel.querySelector('#gs-api-status .gs-api-status__dot');
+  const retry = panel.querySelector('[data-gs="api-retry"]');
+  if (!text || !dot) return;
+
+  const status = getApiGuardStatus();
+  dot.classList.remove('is-on', 'is-paused', 'is-off');
+  if (!status.enabled) {
+    text.textContent = t('apiGuardStatusDisabled');
+    dot.classList.add('is-off');
+  } else if (status.paused) {
+    text.textContent = t('apiGuardStatusPaused', { time: formatClock(status.until) });
+    dot.classList.add('is-paused');
+  } else {
+    text.textContent = t('apiGuardStatusActive');
+    dot.classList.add('is-on');
+  }
+  if (retry) retry.hidden = !status.paused;
+}
+
+function syncApiGuardControls() {
+  const panel = document.getElementById('gs-panel');
+  if (!panel) return;
+  const enabled = panel.querySelector('#gs-api-guard')?.checked ?? true;
+  const options = panel.querySelector('#gs-api-guard-options');
+  options?.classList.toggle('is-disabled', !enabled);
+  options?.querySelectorAll('input').forEach((input) => {
+    input.disabled = !enabled;
+  });
+  const pill = panel.querySelector('#gs-api-guard-pill');
+  if (pill) {
+    pill.textContent = enabled ? t('on') : t('off');
+    pill.classList.toggle('is-on', enabled);
+  }
+  syncApiGuardStatus();
 }
 function syncPositionPicker() {
   const panel = document.getElementById('gs-panel');
@@ -549,6 +656,14 @@ function fillPanelForm() {
   panel.querySelector('#gs-show-missing').checked = settings.showMissingBadge !== false;
   panel.querySelector('#gs-cache-hours').value = String(normalizeCacheHours(settings.cacheHours));
   panel.querySelector('#gs-language').value = normalizeLanguage(settings.language);
+  panel.querySelector('#gs-api-guard').checked = settings.apiGuardEnabled !== false;
+  panel.querySelector('#gs-api-threshold').value = String(
+    normalizeApiFailureThreshold(settings.apiFailureThreshold)
+  );
+  panel.querySelector('#gs-api-cooldown').value = String(
+    normalizeApiCooldownMinutes(settings.apiCooldownMinutes)
+  );
+  syncApiGuardControls();
   syncMissingPill();
   syncDisplayControls();
   syncPositionPicker();
@@ -573,7 +688,15 @@ function persistPanelForm() {
     showMissingBadge: panel.querySelector('#gs-show-missing').checked,
     cacheHours: normalizeCacheHours(panel.querySelector('#gs-cache-hours').value),
     language: panel.querySelector('#gs-language').value,
+    apiGuardEnabled: panel.querySelector('#gs-api-guard').checked,
+    apiFailureThreshold: normalizeApiFailureThreshold(
+      panel.querySelector('#gs-api-threshold').value
+    ),
+    apiCooldownMinutes: normalizeApiCooldownMinutes(
+      panel.querySelector('#gs-api-cooldown').value
+    ),
   });
+  syncApiGuardSettings();
   if (getSettings().cardDisplay !== prevDisplay) refreshCardsForDisplayMode();
   // Header-dot refresh arrives via the setSettingsChangeListener registration
   // below (monolith saveSettings() did it internally; core cannot import features).
@@ -657,6 +780,9 @@ function setBodyScrollLocked(locked) {
 }
 
 setSettingsChangeListener(updateSettingsButtonState);
+onApiGuardChange(() => {
+  if (panelOpen) syncApiGuardStatus();
+});
 export function openSettings() {
   return ensureSettingsButton().then(() => togglePanel(true));
 }

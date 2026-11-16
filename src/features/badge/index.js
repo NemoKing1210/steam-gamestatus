@@ -1,5 +1,6 @@
 import { BADGE_CLASS, DONATE_URL, REPO_URL, SITE_BASE } from '../../core/constants.js';
 import { getSettings, normalizeCardPosition } from '../../core/settings.js';
+import { isApiPaused } from '../../core/api-guard.js';
 import { buildApiUrl } from '../../api/gamestatus.js';
 import { t } from '../../i18n/index.js';
 import { escapeAttr, escapeHtml } from '../../utils/html.js';
@@ -352,6 +353,9 @@ function createCardTooltip(card, resolveEntry, getTitle, getLiveId) {
   const liveId = () => (typeof getLiveId === 'function' ? getLiveId() : '');
 
   const show = (dismissOnOutside) => {
+    // No lookups while the API guard is open — do not flash a skeleton that
+    // can never resolve.
+    if (isApiPaused()) return;
     cardTooltipDismissOnOutside = !!dismissOnOutside;
     activeCardTooltip = api;
     clearTimeout(hideTimer);
@@ -429,6 +433,8 @@ export function bindCardContextTooltip(card, resolveEntry, getTitle, getLiveId, 
   card.addEventListener(
     'contextmenu',
     (e) => {
+      // Keep Steam's own context menu usable while lookups are paused.
+      if (isApiPaused()) return;
       e.preventDefault();
       tip.show(true);
     },
@@ -451,6 +457,7 @@ export function bindCardHotkeyTooltip(card, resolveEntry, getTitle, getLiveId, i
     (e) => {
       if (e.button !== 0 || typeof isKeyHeld !== 'function' || !isKeyHeld(e)) return;
       if (!e.target?.closest?.('a')) return;
+      if (isApiPaused()) return; // navigate as usual during an outage
       e.preventDefault();
       tip.show(true);
     },

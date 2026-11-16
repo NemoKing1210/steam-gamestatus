@@ -6,10 +6,16 @@ import {
 } from './core/constants.js';
 import { loadMemoryCache, persistCacheNow } from './core/cache.js';
 import { applyBadgeAppearance, getSettings } from './core/settings.js';
+import { loadApiGuardState, onApiGuardChange } from './core/api-guard.js';
 import {
   collectRelevantMutations,
   setMutationObserver,
+  suspendApiWork,
 } from './features/cards/index.js';
+import {
+  showApiPausedToast,
+  showApiResumedToast,
+} from './features/api-guard/index.js';
 import { pageFeatures } from './features/index.js';
 import {
   ensureSettingsButton,
@@ -44,6 +50,13 @@ function runScan() {
 
 const scheduleScan = debounce(runScan, SCAN_DEBOUNCE_MS);
 
+/** Re-run every feature against the whole document (empty node list). */
+function forceFullScan() {
+  pendingScanNodes.length = 0;
+  hasInitialScan = false;
+  scheduleScan();
+}
+
 
 function init() {
   configureLocale(getSettings().language ?? 'auto');
@@ -57,6 +70,30 @@ function init() {
       void ensureSettingsButton().then(() => togglePanel(true));
     });
   }
+
+  // API guard owns outage state; main only coordinates the page reaction.
+  onApiGuardChange((change) => {
+    if (change.reason === 'paused') {
+      suspendApiWork();
+      showApiPausedToast(change);
+      return;
+    }
+    if (change.reason === 'retry') {
+      forceFullScan();
+      return;
+    }
+    if (change.reason === 'resumed') {
+      showApiResumedToast();
+      forceFullScan();
+      return;
+    }
+    if (change.reason === 'settings') {
+      // Disabling the guard clears a pause; re-stamp the page right away.
+      forceFullScan();
+    }
+  });
+  loadApiGuardState();
+
   scheduleScan();
 
   // collectRelevantMutations() already drops our own UI

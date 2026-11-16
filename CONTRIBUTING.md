@@ -102,6 +102,9 @@ expected vs. what happened, and a screenshot where visual. For wrong/missing
 game data, open the badge tooltip and paste the "Checked URLs" footer — it
 shows exactly which API lookups were attempted.
 
+**Security issues must not be reported in public issues.** See
+[SECURITY.md](SECURITY.md) for private reporting and scope.
+
 ## Pull request process
 
 1. Fork, branch, commit with clear messages.

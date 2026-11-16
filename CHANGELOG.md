@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.14.0] - 2026-11-16
+
+### Added
+
+- API outage guard: after a configurable number of consecutive failed GameStatus requests (default 3), the script pauses lookups for a cooldown (default 5 minutes), removes pending loaders, keeps cached badges visible, and warns with a toast that offers **Retry now**. After the cooldown it probes automatically, reopens on another failure, and shows a confirmation when the API recovers. State persists across reloads so a dead API is not hammered
+- “API protection” settings section: enable/disable the guard, failure threshold (2–10), and pause duration (1–60 minutes), plus a live status row with the retry action
+- Reusable toast component in the lower-left corner with an optional action button, auto-dismiss, and timer pause on hover/focus
+- README translations into all ten supported interface languages (Russian, Chinese, Spanish, Portuguese, German, French, Japanese, Korean, Polish), with a language switcher linking every translation
+
+### Fixed
+
+- Transport/HTTP failures are no longer cached as “not in database” for the whole cache TTL: an outage leaves the lookup uncached so it is retried later
+- README version badge showed an outdated version (`1.4.7`); it now matches `package.json`
+
 ## [1.13.0] - 2026-09-07
 
 ### Added
@@ -320,6 +334,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - UI localization for 10 languages based on browser locale (fallback: English)
 - Tampermonkey / Violentmonkey / Greasemonkey-compatible metadata and auto-update URLs
 
+[1.14.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.14.0
 [1.13.0]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.13.0
 [1.12.5]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.12.5
 [1.12.4]: https://github.com/NemoKing1210/steam-gamestatus/releases/tag/v1.12.4

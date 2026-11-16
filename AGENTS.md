@@ -29,7 +29,8 @@ steam-gamestatus/
 │   │   ├── constants.js       # URLs, storage keys, defaults, timings, CSS class
 │   │   ├── settings.js        # Settings state, validation, persistence
 │   │   ├── cache.js           # Game-lookup cache (memory-first, GM-backed)
-│   │   └── queue.js           # API request throttle
+│   │   ├── queue.js           # API request throttle
+│   │   └── api-guard.js       # API circuit breaker (outage pause + recovery)
 │   ├── api/
 │   │   ├── gamestatus.js      # Slug resolution → GameStatus API → match
 │   │   └── steam.js           # Store appdetails fallback titles
@@ -38,6 +39,8 @@ steam-gamestatus/
 │   │   ├── cards/             # Listing cards: discovery, lazy-load, hydration
 │   │   ├── game-page/         # Header chip on /app/{id} pages
 │   │   ├── badge/             # Badge + tooltip rendering, status taxonomy
+│   │   ├── api-guard/         # Outage / recovery toast copy
+│   │   ├── toast/             # Reusable toast component
 │   │   └── settings/          # Header button + settings panel
 │   ├── i18n/
 │   │   ├── index.js           # configureLocale / getLocale / t
@@ -74,15 +77,17 @@ Owns the single page-level `MutationObserver` and the debounced scan loop:
 - `init()`: `configureLocale(getSettings().language ?? 'auto')` →
   `applyBadgeAppearance()` → `loadMemoryCache()` → `pagehide` persist hook →
   `ensureSettingsButton()` → `observeHeader()` → `GM_registerMenuCommand` →
-  initial `scheduleScan()` → observer attach with `MUTATION_OBSERVER_OPTIONS`.
+  guard listener registration + `loadApiGuardState()` → initial
+  `scheduleScan()` → observer attach with `MUTATION_OBSERVER_OPTIONS`. Guard
+  changes call `suspendApiWork()`, the toast helpers, and `forceFullScan()`.
 - `runScan()` drains `pendingScanNodes` and calls each `pageFeatures` hook
   with the node list (empty array = full scan; first run forces full scan via
   `hasInitialScan`).
 - Hands the observer instance to the cards module via `setMutationObserver()`
   so `observeCardsMap()` can pause/resume it while stamping badges (avoids
   self-triggered rescan storms). Own-UI mutations (`#gs-panel-overlay`,
-  `#gs-settings-btn`, `.gs-steam-badge__tooltip`) are additionally dropped by
-  `collectRelevantMutations()`.
+  `#gs-settings-btn`, `#gs-toasts`, `.gs-steam-badge__tooltip`) are additionally
+  dropped by `collectRelevantMutations()`.
 
 ### `src/features/index.js` — scan registry
 
@@ -101,15 +106,20 @@ Single place for magic values. Notable entries:
 
 - `API_BASE` (`…/back/api/gameinfo/game`), `SITE_BASE`, `DONATE_URL`,
   `REPO_URL`; `CACHE_KEY = 'gs_steam_cache_v5'`;
-  `SETTINGS_KEY = 'gs_steam_settings'`.
+  `SETTINGS_KEY = 'gs_steam_settings'`; `API_GUARD_KEY = 'gs_api_guard_v1'`.
 - `DEFAULT_SETTINGS`: `cacheHours: 6`, `badgeVertical: 'top'`,
   `badgeHorizontal: 'left'`, `badgeSize: 'medium'`, `cardDisplay: 'badge'`,
-  `cardPosition: 'left'`, `displayKey: 'ShiftLeft'`, `showMissingBadge: true`.
+  `cardPosition: 'left'`, `displayKey: 'ShiftLeft'`, `showMissingBadge: true`,
+  `apiGuardEnabled: true`, `apiFailureThreshold: 3`,
+  `apiCooldownMinutes: 5`.
 - Throttle/shape timings: `MAX_CONCURRENT = 2`, `REQUEST_DELAY_MS = 75`,
   `MAX_SLUG_ATTEMPTS = 2`, `HYDRATE_BATCH_SIZE = 3`,
   `CARD_ROOT_MARGIN = '80px 0px'`, `SCAN_DEBOUNCE_MS = 450`,
   `SCROLL_IDLE_MS = 150`, `CACHE_PERSIST_MS = 1000`,
   `CACHE_HOURS_MAX = 168`.
+- API guard bounds: `API_GUARD_THRESHOLD_MIN/MAX = 2/10`,
+  `API_GUARD_COOLDOWN_MIN/MAX = 1/60`, `API_FAILURE_WINDOW_MS = 10 min`,
+  `TOAST_DURATION_MS = 9000`.
 - `BADGE_CLASS = 'gs-steam-badge'` (also interpolated into CSS at build time
   as the literal class name — never rename one side only).
 - `STEAM_APPDETAILS_URL` (Store `appdetails` endpoint).
@@ -166,6 +176,46 @@ Single-flight throttle: `enqueue(task)` returns a promise; at most
 each completion. All GameStatus API traffic funnels through here via
 `loadGame()` — never call `resolveGame()` directly from features.
 
+### `src/core/api-guard.js` — API circuit breaker
+
+States: `closed` → `open` → `half-open` → `closed`. `requestJson()` reports
+every GameStatus exchange through `registerApiSuccess()` (2xx or 404 — the API
+answered) or `registerApiFailure()` (network error, timeout, non-2xx except
+404, unparsable JSON). Repeated failures (default threshold 3, failures older
+than `API_FAILURE_WINDOW_MS` ignored) open the circuit for
+`apiCooldownMinutes`, persist `{state, failures, lastFailureAt, openUntil,
+toastShown}` under `API_GUARD_KEY`, and notify listeners with
+`reason: 'paused' | 'retry' | 'resumed' | 'settings'`.
+
+- `isApiPaused()` is checked by `loadGame()`, card observation/hydration and
+  `renderGamePage()`; cached entries still render while paused.
+- On `paused`, `main.js` calls `suspendApiWork()` and shows the toast; on
+  `retry` / `resumed` it forces a full rescan.
+- Cooldown expiry enters `half-open`: the next failure reopens immediately,
+  the next success closes and notifies `resumed`. `retryApiNow()` does the
+  same on demand (toast action / panel button).
+- `syncApiGuardSettings()` is called by the panel after saving (disable clears
+  the circuit; a lower threshold may open it immediately);
+  `loadApiGuardState()` restores persisted state at startup and notifies a
+  toast once per pause (`toastShown`).
+- `api-guard` must not import features. Only `getSettings()` coupling is
+  allowed; settings has no back-reference.
+
+### `src/features/toast/`
+
+Reusable lower-left toast stack (`#gs-toasts`). `showToast({ id, message,
+variant, duration, action, closeLabel })` dedupes by `id`, pauses its timer on
+hover/focus, and returns a dismiss function; `dismissToast(id)` is exported for
+callers that need to retract a stale warning. Own-UI mutations
+(`#gs-toasts`) are filtered by `isRelevantAddedNode()` / `tryAddCardFromLink()`
+so toasts never trigger rescans.
+
+### `src/features/api-guard/`
+
+Toast copy for guard transitions: `showApiPausedToast(change)` (warning with a
+**Retry now** action wired to `retryApiNow()`) and `showApiResumedToast()`.
+All strings are localized keys; imports only core + toast + i18n.
+
 ### `src/api/gamestatus.js` — resolution pipeline
 
 Resolution order per app ID (see `resolveGame()`):
@@ -180,14 +230,23 @@ Resolution order per app ID (see `resolveGame()`):
    `fetchSteamAppTitle()` and retry from it.
 5. If DOM slugs failed but a distinct Store title exists, retry once more from
    the Store title (guards against junk slugs from wishlist flags/badge text).
-6. Otherwise store a `missing: true` entry (with `triedUrls` for the tooltip
+6. If no attempt completed an HTTP exchange at all (every request threw),
+   rethrow the last error — **transport/HTTP failures are never cached as
+   `missing`**, because that would turn an outage into fake "not in database"
+   results for the whole TTL.
+7. Otherwise store a `missing: true` entry (with `triedUrls` for the tooltip
    footer) and return it.
+
+`tryResolveBySlugs()` returns `{ entry, reachable, lastError }`: a 404 or a
+`steam_prod_id` mismatch sets `reachable`, proving the API answered.
 
 `isMatchingGame()` accepts responses without `steam_prod_id` and otherwise
 requires an exact string match — **never resolve by App ID alone**.
 `loadGame()` adds the `getCached()` fast path plus `inflight` + `enqueue()`
-dedup around `resolveGame()`. `requestJson()` sends `GM_xmlhttpRequest` with
-the browser `Accept-Language` (fallback `en-US`).
+dedup around `resolveGame()`; when `isApiPaused()` it returns
+`{ paused: true }` without queueing (features must not render a badge for it).
+`requestJson()` sends `GM_xmlhttpRequest` with the browser `Accept-Language`
+(fallback `en-US`) and reports every outcome to `core/api-guard.js`.
 
 ### `src/api/steam.js` — title fallback
 
@@ -287,11 +346,17 @@ Card discovery and lazy hydration. Key exports: `collectCards`,
 - **Multi-app capsules**: `cleanupMisplaced*()` removes badges whose anchor
   App ID no longer matches (`verifyBadgeAppId()`); `hasMultipleGames()` /
   `countDistinctAppIds()` detect group containers.
-- **Observe** (`observeCardsMap()`): pauses the page observer, stamps loader
-  badges, records the `gsObserved / gsAppId / gsTitle` dataset protocol,
-  subscribes anchors to `visibilityObserver`
-  (`rootMargin: 80px`, `threshold: 0.05`), then resumes the observer. Installs
-  the scroll listener once (owned here, not by `main.js`).
+- **Observe** (`observeCardsMap()`): returns early while `isApiPaused()` (no
+  loader stamps, no observation state — the resume full scan starts clean).
+  Otherwise pauses the page observer, stamps loader badges, records the
+  `gsObserved / gsAppId / gsTitle` dataset protocol, subscribes anchors to
+  `visibilityObserver` (`rootMargin: 80px`, `threshold: 0.05`), then resumes
+  the observer. Installs the scroll listener once (owned here, not by
+  `main.js`).
+- **Pause/resume** (`suspendApiWork()`): exported for `main.js` — clears the
+  hydration queue, drops pending loader badges and their observation state,
+  and un-marks a pending page chip (`gsPageProcessed`). Resolved/cached badges
+  stay visible. `main.js` forces a full scan after `retry` / `resumed`.
 - **Hydrate**: intersecting anchors go to `enqueueHydration()` →
   `flushHydrationQueue()` batches `HYDRATE_BATCH_SIZE` per animation frame,
   paused while `isScrolling` (resumes `SCROLL_IDLE_MS` after scroll stops).
@@ -300,7 +365,9 @@ Card discovery and lazy hydration. Key exports: `collectCards`,
   `requestAnimationFrame` for the hide-missing path) so recycled Steam nodes
   never paint a stale game. Honors `showMissingBadge` via
   `shouldRenderMissingBadge()`; load failures render the `loadError` badge
-  only when missing badges are enabled.
+  only when missing badges are enabled. `{ paused: true }` entries and
+  `isApiPaused()` at any async boundary remove the loader and bail — the
+  outage toast owns the user-facing explanation.
 - **Filter** (`collectRelevantMutations()`): attribute mutations only for
   `data-ds-appid` capsules (stale-badge reset) and carousel focus changes;
   added nodes via `isRelevantAddedNode()` (drops `#gs-panel`,
@@ -314,7 +381,9 @@ Card discovery and lazy hydration. Key exports: `collectCards`,
 `findAppAnchor(document, appId)` → `a[href*="/app/{id}"]` → pathname
 fallback. Same `loadGame()` path as cards (cache + queue + slug resolution);
 missing/error handling mirrors `hydrateCard()` with `{ isPage: true }`
-rendering. Game-page chips ignore badge position/size settings by design.
+rendering, including the `isApiPaused()` / `paused` early returns (no chip is
+mounted while the guard is open). Game-page chips ignore badge position/size
+settings by design.
 
 ### `src/features/badge/` — status taxonomy and rendering
 
@@ -360,7 +429,12 @@ rendering. Game-page chips ignore badge position/size settings by design.
   `data-gs-pane` panes — General (interface language with live panel retranslate,
   Display section: card display mode select, card-position select for the popover
   card, plus the hotkey recorder button (`syncDisplayControls()`
-  gates badge controls + `recordDisplayKey()` capture listener), badge position/size,
+  gates badge controls + `recordDisplayKey()` capture listener), API
+  protection section (`#gs-api-guard` switch, `#gs-api-threshold` /
+  `#gs-api-cooldown` number inputs gated by `syncApiGuardControls()`, live
+  status row `#gs-api-status` + **Retry now** button via
+  `syncApiGuardStatus()` / `getApiGuardStatus()` / `retryApiNow()`;
+  `persistPanelForm()` calls `syncApiGuardSettings()`), badge position/size,
   show-missing pill with hint), Cache (usage meter with
   found/missing segments + count badge on the tab via `cache-pane.js`
   `paintCachePane()`, stored-lookup list capped at 100 with per-entry remove,
@@ -418,6 +492,12 @@ DOM mutation → `collectRelevantMutations()` → debounced `runScan()` →
 Store-title fallback on weak DOM evidence) → `setCached()` →
 `renderBadge()` + `bindTooltip()`.
 
+Every API exchange informs `core/api-guard.js`. If consecutive failures reach
+the threshold, the guard opens, `main.js` runs `suspendApiWork()` + shows the
+toast, and the pipeline above short-circuits at `isApiPaused()` until the
+cooldown expires (half-open) or the user presses **Retry now**; a successful
+probe closes the guard and forces a full rescan.
+
 ## Steam DOM gotchas
 
 - Featured carousels reuse coordinates across slides: only the `.focus` slide
@@ -451,6 +531,9 @@ Stored under `gs_steam_settings` (`getSettings()` is the only reader;
 | `displayKey` | `'ShiftLeft'` | `e.code` for the hotkey mode (`ShiftLeft` matches `e.shiftKey`) |
 | `showMissingBadge` | `true` | `false` leaves unmatched cards unmarked; hover/click modes always show the card |
 | `language` | `'auto'` | `'auto'` (browser) or a `SUPPORTED_LOCALES` code; panel live-retranslates, badges need reload |
+| `apiGuardEnabled` | `true` | Master switch for the API outage guard; `false` clears any open circuit |
+| `apiFailureThreshold` | `3` | Consecutive failed requests before pausing; clamped to `2..10` |
+| `apiCooldownMinutes` | `5` | Pause length before the recovery probe; clamped to `1..60` |
 
 Add new keys to `DEFAULT_SETTINGS`, a `normalize*` validator, the panel form
 (`fillPanelForm` / `persistPanelForm`), and the header-dot comparison in
@@ -528,6 +611,9 @@ the root install artifacts stay synchronized. Before finishing, run
   what each anchor resolved to; `gsPageProcessed` marks game-page anchors.
 - Set cache hours to `0` (or Clear cache) to force live lookups while
   iterating; re-enable before shipping verification.
+- The outage guard persists under `gs_api_guard_v1` (`state`, `failures`,
+  `openUntil`, `toastShown`). To force a clean run, delete that key or toggle
+  API protection off and save; the panel status row shows the live state.
 - Logic-only smoke tests run in Node without a DOM: pure modules
   (`utils/slug.js`, `utils/format.js` except `getApiLanguage`/`formatDate`,
   `i18n/locales`) import cleanly; `main.js` and feature modules need the

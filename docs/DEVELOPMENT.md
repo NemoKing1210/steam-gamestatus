@@ -48,6 +48,10 @@ Constants in `src/core/constants.js` can be adjusted:
 | `MAX_SLUG_ATTEMPTS` | 2 | Slug candidates tried per game lookup |
 | `DEFAULT_SETTINGS.cacheHours` | 6 hours | Cache lifetime for all lookups (`0` disables) |
 | `CACHE_HOURS_MAX` | 168 | Upper clamp for the cache duration setting |
+| `DEFAULT_SETTINGS.apiFailureThreshold` | 3 | Consecutive API failures before the guard pauses lookups |
+| `DEFAULT_SETTINGS.apiCooldownMinutes` | 5 | How long the guard pauses before a recovery probe |
+| `API_FAILURE_WINDOW_MS` | 10 min | Older failures stop counting toward the threshold |
+| `TOAST_DURATION_MS` | 9000 ms | Default toast lifetime |
 | `CACHE_PERSIST_MS` | 1000 ms | Debounce interval for writing cache to storage |
 | `CARD_ROOT_MARGIN` | `80px 0px` | How far ahead of the viewport to prefetch cards |
 | `SCAN_DEBOUNCE_MS` | 450 ms | Debounce for DOM mutation rescans |

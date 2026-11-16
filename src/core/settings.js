@@ -1,5 +1,9 @@
 import { GM_getValue, GM_setValue } from '$';
 import {
+  API_GUARD_COOLDOWN_MAX,
+  API_GUARD_COOLDOWN_MIN,
+  API_GUARD_THRESHOLD_MAX,
+  API_GUARD_THRESHOLD_MIN,
   CACHE_HOURS_MAX,
   DEFAULT_SETTINGS,
   SETTINGS_KEY,
@@ -42,6 +46,24 @@ export function normalizeLanguage(value) {
   return DEFAULT_SETTINGS.language;
 }
 
+export function normalizeApiFailureThreshold(value) {
+  if (value === '' || value === null || value === undefined) {
+    return DEFAULT_SETTINGS.apiFailureThreshold;
+  }
+  const n = Math.round(Number(value));
+  if (!Number.isFinite(n)) return DEFAULT_SETTINGS.apiFailureThreshold;
+  return Math.min(Math.max(n, API_GUARD_THRESHOLD_MIN), API_GUARD_THRESHOLD_MAX);
+}
+
+export function normalizeApiCooldownMinutes(value) {
+  if (value === '' || value === null || value === undefined) {
+    return DEFAULT_SETTINGS.apiCooldownMinutes;
+  }
+  const n = Math.round(Number(value));
+  if (!Number.isFinite(n)) return DEFAULT_SETTINGS.apiCooldownMinutes;
+  return Math.min(Math.max(n, API_GUARD_COOLDOWN_MIN), API_GUARD_COOLDOWN_MAX);
+}
+
 export function loadSettings() {
   const raw = GM_getValue(SETTINGS_KEY, null);
   if (!raw || typeof raw !== 'object') return { ...DEFAULT_SETTINGS };
@@ -57,6 +79,9 @@ export function loadSettings() {
     displayKey: normalizeDisplayKey(raw.displayKey),
     showMissingBadge: raw.showMissingBadge !== false,
     language: normalizeLanguage(raw.language),
+    apiGuardEnabled: raw.apiGuardEnabled !== false,
+    apiFailureThreshold: normalizeApiFailureThreshold(raw.apiFailureThreshold),
+    apiCooldownMinutes: normalizeApiCooldownMinutes(raw.apiCooldownMinutes),
   };
 }
 
@@ -89,6 +114,16 @@ export function saveSettings(next) {
         ? next.showMissingBadge
         : settings.showMissingBadge !== false,
     language: normalizeLanguage(next.language ?? settings.language),
+    apiGuardEnabled:
+      typeof next.apiGuardEnabled === 'boolean'
+        ? next.apiGuardEnabled
+        : settings.apiGuardEnabled !== false,
+    apiFailureThreshold: normalizeApiFailureThreshold(
+      next.apiFailureThreshold ?? settings.apiFailureThreshold
+    ),
+    apiCooldownMinutes: normalizeApiCooldownMinutes(
+      next.apiCooldownMinutes ?? settings.apiCooldownMinutes
+    ),
   };
   GM_setValue(SETTINGS_KEY, settings);
   applyBadgeAppearance();

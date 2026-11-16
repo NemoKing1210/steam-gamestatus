@@ -6,6 +6,7 @@ import {
   SCROLL_IDLE_MS,
 } from '../../core/constants.js';
 import { getSettings } from '../../core/settings.js';
+import { isApiPaused } from '../../core/api-guard.js';
 import { loadGame } from '../../api/gamestatus.js';
 import { bindCardContextTooltip, bindCardHotkeyTooltip, bindCardHoverTooltip, createLoaderBadge, ensureRelativePosition, renderBadge } from '../badge/index.js';
 import { extractAppIdFromHref, findAppAnchor, isDsAppCapsule } from '../../utils/slug.js';
@@ -44,8 +45,8 @@ export function resumeMutationObserver() {
 export function isRelevantAddedNode(node) {
   if (node.nodeType !== Node.ELEMENT_NODE) return false;
   const el = /** @type {Element} */ (node);
-  if (el.id === 'gs-panel-overlay' || el.id === 'gs-panel' || el.id === 'gs-settings-btn') return false;
-  if (el.closest?.('#gs-panel-overlay')) return false;
+  if (el.id === 'gs-panel-overlay' || el.id === 'gs-panel' || el.id === 'gs-settings-btn' || el.id === 'gs-toasts') return false;
+  if (el.closest?.('#gs-panel-overlay, #gs-toasts')) return false;
   if (el.classList?.contains(BADGE_CLASS)) return false;
   if (el.closest?.(`.${BADGE_CLASS}__tooltip`)) return false;
   if (el.closest?.('[data-gs-observed="1"]')) {
@@ -201,7 +202,7 @@ export function tryAddCardFromLink(link, cards) {
   if (link.closest('.home_content_reason')) return;
   // Own settings UI also links to /app/{id} (cache entry list) — never treat
   // it as store cards (mirrors isRelevantAddedNode for the full-scan path).
-  if (link.closest?.('#gs-panel-overlay, #gs-settings-btn')) return;
+  if (link.closest?.('#gs-panel-overlay, #gs-settings-btn, #gs-toasts')) return;
   const appId = extractAppIdFromHref(link.href);
   if (!appId) return;
   // Game page header badge is handled separately — skip same-app capsules
@@ -462,6 +463,7 @@ export function collectCardsFromNodes(nodes) {
 }
 
 export function enqueueHydration(card, appId, link, title) {
+  if (isApiPaused()) return;
   const anchor = getBadgeAnchor(card);
   visibilityObserver.unobserve(anchor);
   hydrationQueue.push({ card, appId, link, title });
@@ -560,6 +562,28 @@ export function resetBadgeAnchor(anchor) {
   delete anchor.dataset.gsAppId;
   delete anchor.dataset.gsTitle;
 }
+
+/**
+ * Called when the API guard opens: drop queued hydrations and every pending
+ * loader so the page does not sit on spinners for the whole cooldown. Real
+ * (already resolved, cached) badges stay visible.
+ */
+export function suspendApiWork() {
+  hydrationQueue.length = 0;
+  if (hydrateFlushRaf) {
+    cancelAnimationFrame(hydrateFlushRaf);
+    hydrateFlushRaf = null;
+  }
+  document
+    .querySelectorAll(`.${BADGE_CLASS}--loading, .${BADGE_CLASS}[data-gs-load-error="1"]`)
+    .forEach((badge) => {
+      const pageAnchor = badge.closest('.apphub_OtherSiteInfo');
+      if (pageAnchor) delete pageAnchor.dataset.gsPageProcessed;
+      const observedAnchor = badge.closest('[data-gs-observed="1"]');
+      badge.remove();
+      if (observedAnchor) resetBadgeAnchor(observedAnchor);
+    });
+}
 export function isBadgeDisplayMode() {
   return getSettings().cardDisplay === 'badge';
 }
@@ -576,6 +600,7 @@ async function resolveHoverEntry(card, link, title, fallbackAppId) {
     const liveTitle = title || getCardTitle(card, liveLink, getCardLink);
     const entry = await loadGame(liveId, liveLink, liveTitle);
     if (resolveCardAppId(card, fallbackAppId) !== liveId) return null;
+    if (entry?.paused) return null;
     // Hover mode always shows the card — missing games render "not in database".
     return entry;
   } catch {
@@ -594,6 +619,11 @@ export async function hydrateCard(card, appId, link, title) {
   const resolvedTitle = title || getCardTitle(card, resolvedLink, getCardLink);
   const loader = anchor.querySelector(`.${BADGE_CLASS}--loading`);
 
+  if (isApiPaused()) {
+    loader?.remove();
+    return;
+  }
+
   if (anchor.dataset.gsAppId && anchor.dataset.gsAppId !== resolvedAppId) {
     loader?.remove();
     return;
@@ -601,6 +631,10 @@ export async function hydrateCard(card, appId, link, title) {
 
   try {
     const entry = await loadGame(resolvedAppId, resolvedLink, resolvedTitle);
+    if (entry?.paused || isApiPaused()) {
+      loader?.remove();
+      return;
+    }
     if (anchor.dataset.gsAppId && anchor.dataset.gsAppId !== resolvedAppId) {
       loader?.remove();
       return;
@@ -627,6 +661,12 @@ export async function hydrateCard(card, appId, link, title) {
       loader?.replaceWith(badge);
     });
   } catch {
+    // An outage is not a per-card error: the guard owns the warning and the
+    // resume scan, so never paint misleading "load error" chips while paused.
+    if (isApiPaused()) {
+      loader?.remove();
+      return;
+    }
     if (anchor.dataset.gsAppId && anchor.dataset.gsAppId !== resolvedAppId) {
       loader?.remove();
       return;
@@ -638,6 +678,7 @@ export async function hydrateCard(card, appId, link, title) {
     }
 
     const badge = renderBadge({ data: null, missing: true, triedUrls: [] }, { isChart, appId: resolvedAppId });
+    badge.dataset.gsLoadError = '1';
     badge.querySelector(`.${BADGE_CLASS}__label`).textContent = t('loadError');
     requestAnimationFrame(() => {
       if (anchor.dataset.gsAppId && anchor.dataset.gsAppId !== resolvedAppId) {
@@ -659,6 +700,10 @@ export function observeCardsMap(cards) {
     setupScrollListener();
     setupKeyTracker();
   }
+
+  // While the API guard has paused lookups, leave cards untouched (no loader
+  // stamps, no observation state) so the resume scan starts from a clean slate.
+  if (isApiPaused()) return;
 
   pauseMutationObserver();
   requestAnimationFrame(() => {

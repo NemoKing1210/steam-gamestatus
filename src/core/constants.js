@@ -8,6 +8,7 @@ export const REPO_URL = 'https://github.com/NemoKing1210/steam-gamestatus';
 export const AUTHOR_URL = 'https://github.com/NemoKing1210';
 export const CACHE_KEY = 'gs_steam_cache_v5';
 export const SETTINGS_KEY = 'gs_steam_settings';
+export const API_GUARD_KEY = 'gs_api_guard_v1';
 export const CACHE_HOURS_MAX = 168;
 /** Soft byte budget for the Cache tab meter (game lookups are small JSON) */
 export const CACHE_SOFT_LIMIT_BYTES = 2 * 1024 * 1024;
@@ -21,7 +22,17 @@ export const DEFAULT_SETTINGS = {
   cardPosition: 'left',
   displayKey: 'ShiftLeft',
   showMissingBadge: true,
+  apiGuardEnabled: true,
+  apiFailureThreshold: 3,
+  apiCooldownMinutes: 5,
 };
+export const API_GUARD_THRESHOLD_MIN = 2;
+export const API_GUARD_THRESHOLD_MAX = 10;
+export const API_GUARD_COOLDOWN_MIN = 1;
+export const API_GUARD_COOLDOWN_MAX = 60;
+/** Failures older than this no longer count toward the threshold */
+export const API_FAILURE_WINDOW_MS = 10 * 60 * 1000;
+export const TOAST_DURATION_MS = 9000;
 export const MAX_CONCURRENT = 2;
 export const CARD_ROOT_MARGIN = '80px 0px';
 export const SCAN_DEBOUNCE_MS = 450;

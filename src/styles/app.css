@@ -1537,3 +1537,158 @@ html.gs-modal-open body {
 @media (max-width: 900px) {
   .gs-header-btn__text { display: none; }
 }
+
+/* API protection status (settings panel) */
+#gs-api-guard-options.is-disabled {
+  opacity: 0.5;
+}
+.gs-api-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+}
+.gs-api-status__dot {
+  flex: 0 0 auto;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #8f98a0;
+}
+.gs-api-status__dot.is-on {
+  background: #a4d007;
+  box-shadow: 0 0 6px rgba(164, 208, 7, 0.7);
+}
+.gs-api-status__dot.is-paused {
+  background: #e5a83b;
+  box-shadow: 0 0 6px rgba(229, 168, 59, 0.7);
+}
+.gs-api-status__dot.is-off {
+  background: #8f98a0;
+}
+.gs-api-status__text {
+  flex: 1 1 auto;
+  min-width: 0;
+  color: #c7d5e0;
+  font-size: 12px;
+}
+.gs-api-status .gs-btn {
+  flex: 0 0 auto;
+  min-height: 24px;
+  font-size: 11px;
+  line-height: 24px;
+  padding: 0 10px;
+}
+
+/* Toasts (API guard warnings) */
+.gs-toast-stack {
+  position: fixed;
+  left: 16px;
+  bottom: 16px;
+  /* Above page content, below the settings modal (1000000). */
+  z-index: 999998;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: min(380px, calc(100vw - 32px));
+  pointer-events: none;
+}
+.gs-toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, #1b2838 0%, #16202d 100%);
+  border: 1px solid #000;
+  border-left: 3px solid #e5a83b;
+  border-radius: 3px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  color: #c7d5e0;
+  font: 12px/1.45 "Motiva Sans", Arial, Helvetica, sans-serif;
+  animation: gs-toast-in 0.18s ease-out;
+}
+.gs-toast--success {
+  border-left-color: #a4d007;
+}
+.gs-toast--error {
+  border-left-color: #e05a4f;
+}
+.gs-toast__icon {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(229, 168, 59, 0.18);
+  color: #e5a83b;
+  font-weight: 700;
+  font-size: 11px;
+}
+.gs-toast--success .gs-toast__icon {
+  background: rgba(164, 208, 7, 0.18);
+  color: #beee11;
+}
+.gs-toast__content {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.gs-toast__message {
+  margin: 0;
+  color: #c7d5e0;
+}
+.gs-toast__action {
+  margin-top: 6px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #66c0f4;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+.gs-toast__action:hover {
+  text-decoration: underline;
+}
+.gs-toast__close {
+  flex: 0 0 auto;
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  color: #8f98a0;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+}
+.gs-toast__close:hover {
+  color: #fff;
+}
+.gs-toast.is-leaving {
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.18s ease, transform 0.18s ease;
+}
+@keyframes gs-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gs-toast {
+    animation: none;
+  }
+  .gs-toast.is-leaving {
+    transition: none;
+  }
+}

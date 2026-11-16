@@ -62,6 +62,26 @@ to drop all stored lookups.
 Duplicate in-flight requests for the same App ID are deduplicated. See
 `src/core/cache.js` and `src/core/queue.js`.
 
+Transport and HTTP failures are never cached as “not in database”: a lookup
+that produced no successful API response is retried instead of poisoning the
+cache for the whole TTL.
+
+### API outage guard
+
+`src/core/api-guard.js` is a circuit breaker around GameStatus API traffic.
+It counts consecutive failed requests (network errors, timeouts, non-2xx
+responses other than 404). At the configured threshold (`apiFailureThreshold`,
+default 3) the circuit opens for `apiCooldownMinutes` (default 5): no new
+lookups start, pending loaders are removed, existing cached badges stay
+visible, and a toast explains the pause with a **Retry now** action.
+
+When the cooldown expires the circuit becomes half-open and the page rescans:
+the next failed request reopens it immediately, the next successful response
+closes it and triggers a final rescan (with a confirmation toast). The state
+is persisted in GM storage (`gs_api_guard_v1`) so reloads do not hammer a dead
+API. All three parameters live in the settings panel under **API protection**.
+See `src/core/api-guard.js` and `src/features/toast/`.
+
 ### Dynamic content
 
 Steam loads many lists via AJAX (infinite scroll, tab switches). A filtered
@@ -75,9 +95,9 @@ scrolling and resumes in small batches when scrolling stops. See
 ```text
 steam-gamestatus/
 ├── src/                     # Sources (entry: src/main.js)
-│   ├── core/                # Constants, settings, cache, request queue
+│   ├── core/                # Constants, settings, cache, queue, API guard
 │   ├── api/                 # GameStatus API + Steam appdetails fallback
-│   ├── features/            # Cards, game page, badges/tooltips, settings
+│   ├── features/            # Cards, game page, badges/tooltips, settings, toasts
 │   ├── i18n/locales/        # UI strings (one file per locale)
 │   ├── styles/              # Injected CSS (app.css) and tokens
 │   └── utils/               # Slug, Steam DOM, formatting, HTML helpers
@@ -89,6 +109,7 @@ steam-gamestatus/
 ├── package.json             # Version source of truth
 ├── vite.config.js           # Build + userscript metadata
 ├── README.md                # User documentation and install instructions
+├── README.<lang>.md         # Translated READMEs (ru, zh, es, pt, de, fr, ja, ko, pl)
 ├── CHANGELOG.md             # Version history
 ├── LICENSE                  # MIT license
 └── .gitattributes             # GitHub linguist overrides
